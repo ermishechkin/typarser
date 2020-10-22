@@ -1,11 +1,13 @@
 from __future__ import annotations
 
-from typing import Generic, Literal, Optional, Type, TypeVar, overload
+from typing import (Generic, List, Literal, Optional, Type, TypeVar, Union,
+                    overload)
 
 NAMESPACE = TypeVar('NAMESPACE')
 TYPE = TypeVar('TYPE')
 SELF = TypeVar('SELF', bound='Option')
 RESULT = TypeVar('RESULT')
+NARGS = Union[int, Literal['*'], Literal['+'], Literal['?']]
 
 
 class Option(Generic[TYPE, RESULT]):
@@ -17,6 +19,7 @@ class Option(Generic[TYPE, RESULT]):
         *,
         type: Type[TYPE],
         required: Literal[False] = False,
+        nargs: Literal[None] = None,
         help: Optional[str] = None,
     ):
         ...
@@ -27,6 +30,40 @@ class Option(Generic[TYPE, RESULT]):
         *,
         type: Type[TYPE],
         required: Literal[True],
+        nargs: Literal[None] = None,
+        help: Optional[str] = None,
+    ):
+        ...
+
+    @overload
+    def __init__(
+        self: Option[TYPE, Optional[TYPE]],
+        *,
+        type: Type[TYPE],
+        required: bool = False,
+        nargs: Literal['?'],
+        help: Optional[str] = None,
+    ):
+        ...
+
+    @overload
+    def __init__(
+        self: Option[TYPE, Optional[List[TYPE]]],
+        *,
+        type: Type[TYPE],
+        required: Literal[False] = False,
+        nargs: Union[int, Literal['*', '+']],
+        help: Optional[str] = None,
+    ):
+        ...
+
+    @overload
+    def __init__(
+        self: Option[TYPE, List[TYPE]],
+        *,
+        type: Type[TYPE],
+        required: Literal[True],
+        nargs: Union[int, Literal['*', '+']],
         help: Optional[str] = None,
     ):
         ...
@@ -38,10 +75,12 @@ class Option(Generic[TYPE, RESULT]):
             *,
             type: Type[TYPE],  # pylint: disable=redefined-builtin
             required: bool = False,
+            nargs: Optional[NARGS] = None,
             help: Optional[str] = None,  # pylint: disable=redefined-builtin
     ):
         self._type = type
         self._required = required
+        self._nargs: Optional[NARGS] = nargs
         self._help = help
 
     @overload
@@ -53,8 +92,9 @@ class Option(Generic[TYPE, RESULT]):
     def __get__(self, owner: NAMESPACE, inst: Type[NAMESPACE]) -> RESULT:
         ...
 
-    def __get__(self, owner: Optional[NAMESPACE], inst: Type[NAMESPACE]):
-        pass
+    def __get__(self: SELF, owner: Optional[NAMESPACE],
+                inst: Type[NAMESPACE]) -> Union[SELF, RESULT]:
+        raise NotImplementedError
 
     def __set__(self, owner: NAMESPACE, value: TYPE):
         raise AttributeError('Attributes are read-only')
@@ -70,3 +110,7 @@ class Option(Generic[TYPE, RESULT]):
     @property
     def required(self) -> bool:
         return self._required
+
+    @property
+    def nargs(self) -> Optional[NARGS]:
+        return self._nargs
