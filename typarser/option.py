@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from typing import (Callable, Generic, List, Literal, Optional, Type, TypeVar,
-                    Union, overload)
+from typing import (Any, Callable, Generic, List, Literal, Optional, Type,
+                    TypeVar, Union, overload)
 
 NAMESPACE = TypeVar('NAMESPACE')
 TYPE = TypeVar('TYPE')
@@ -161,3 +161,110 @@ class Option(Generic[TYPE, RESULT]):
     @property
     def multiple(self) -> bool:
         return self._multiple
+
+    # HACK: __init__ overloading doesn't work correctly for some linters.
+    # Duplicate signatures for __new__ method.
+
+    # pylint: disable=redefined-builtin
+
+    @overload
+    def __new__(
+        cls,
+        *,
+        type: Callable[[str], TYPE],
+        required: Literal[False] = False,
+        nargs: Literal[None] = None,
+        multiple: Literal[False] = False,
+        help: Optional[str] = None,
+    ) -> Option[TYPE, Optional[TYPE]]:
+        ...
+
+    @overload
+    def __new__(
+        cls,
+        *,
+        type: Callable[[str], TYPE],
+        required: Literal[True],
+        nargs: Literal[None] = None,
+        multiple: Literal[False] = False,
+        help: Optional[str] = None,
+    ) -> Option[TYPE, TYPE]:
+        ...
+
+    @overload
+    def __new__(
+        cls,
+        *,
+        type: Callable[[str], TYPE],
+        required: bool = False,
+        nargs: Literal['?'],
+        multiple: Literal[False] = False,
+        help: Optional[str] = None,
+    ) -> Option[TYPE, Optional[TYPE]]:
+        ...
+
+    @overload
+    def __new__(
+        cls,
+        *,
+        type: Callable[[str], TYPE],
+        required: Literal[False] = False,
+        nargs: Union[int, Literal['*', '+']],
+        multiple: Literal[False] = False,
+        help: Optional[str] = None,
+    ) -> Option[TYPE, Optional[List[TYPE]]]:
+        ...
+
+    @overload
+    def __new__(
+        cls,
+        *,
+        type: Callable[[str], TYPE],
+        required: Literal[True],
+        nargs: Union[int, Literal['*', '+']],
+        multiple: Literal[False] = False,
+        help: Optional[str] = None,
+    ) -> Option[TYPE, List[TYPE]]:
+        ...
+
+    @overload
+    def __new__(
+        cls,
+        *,
+        type: Callable[[str], TYPE],
+        required: bool = False,
+        nargs: Literal[None] = None,
+        multiple: Literal[True],
+        help: Optional[str] = None,
+    ) -> Option[TYPE, List[TYPE]]:
+        ...
+
+    @overload
+    def __new__(
+        cls,
+        *,
+        type: Callable[[str], TYPE],
+        required: bool = False,
+        nargs: Literal['?'],
+        multiple: Literal[True],
+        help: Optional[str] = None,
+    ) -> Option[TYPE, List[Optional[TYPE]]]:
+        ...
+
+    @overload
+    def __new__(
+        cls,
+        *,
+        type: Callable[[str], TYPE],
+        required: bool = False,
+        nargs: Union[int, Literal['*', '+']],
+        multiple: Literal[True],
+        help: Optional[str] = None,
+    ) -> Option[TYPE, List[List[TYPE]]]:
+        ...
+
+    # pylint: enable=redefined-builtin
+
+    def __new__(cls, *args: Any, **kwargs: Any):
+        # pylint: disable=unused-argument
+        return object.__new__(cls)
