@@ -20,6 +20,7 @@ class Option(Generic[TYPE, RESULT]):
         type: Type[TYPE],
         required: Literal[False] = False,
         nargs: Literal[None] = None,
+        multiple: Literal[False] = False,
         help: Optional[str] = None,
     ):
         ...
@@ -31,6 +32,7 @@ class Option(Generic[TYPE, RESULT]):
         type: Type[TYPE],
         required: Literal[True],
         nargs: Literal[None] = None,
+        multiple: Literal[False] = False,
         help: Optional[str] = None,
     ):
         ...
@@ -42,6 +44,7 @@ class Option(Generic[TYPE, RESULT]):
         type: Type[TYPE],
         required: bool = False,
         nargs: Literal['?'],
+        multiple: Literal[False] = False,
         help: Optional[str] = None,
     ):
         ...
@@ -53,6 +56,7 @@ class Option(Generic[TYPE, RESULT]):
         type: Type[TYPE],
         required: Literal[False] = False,
         nargs: Union[int, Literal['*', '+']],
+        multiple: Literal[False] = False,
         help: Optional[str] = None,
     ):
         ...
@@ -64,6 +68,43 @@ class Option(Generic[TYPE, RESULT]):
         type: Type[TYPE],
         required: Literal[True],
         nargs: Union[int, Literal['*', '+']],
+        multiple: Literal[False] = False,
+        help: Optional[str] = None,
+    ):
+        ...
+
+    @overload
+    def __init__(
+        self: Option[TYPE, List[TYPE]],
+        *,
+        type: Type[TYPE],
+        required: bool = False,
+        nargs: Literal[None] = None,
+        multiple: Literal[True],
+        help: Optional[str] = None,
+    ):
+        ...
+
+    @overload
+    def __init__(
+        self: Option[TYPE, List[Optional[TYPE]]],
+        *,
+        type: Type[TYPE],
+        required: bool = False,
+        nargs: Literal['?'],
+        multiple: Literal[True],
+        help: Optional[str] = None,
+    ):
+        ...
+
+    @overload
+    def __init__(
+        self: Option[TYPE, List[List[TYPE]]],
+        *,
+        type: Type[TYPE],
+        required: bool = False,
+        nargs: Union[int, Literal['*', '+']],
+        multiple: Literal[True],
         help: Optional[str] = None,
     ):
         ...
@@ -76,11 +117,13 @@ class Option(Generic[TYPE, RESULT]):
             type: Type[TYPE],  # pylint: disable=redefined-builtin
             required: bool = False,
             nargs: Optional[NARGS] = None,
+            multiple: bool = False,
             help: Optional[str] = None,  # pylint: disable=redefined-builtin
     ):
         self._type = type
         self._required = required
         self._nargs: Optional[NARGS] = nargs
+        self._multiple = multiple
         self._help = help
 
     @overload
@@ -114,3 +157,7 @@ class Option(Generic[TYPE, RESULT]):
     @property
     def nargs(self) -> Optional[NARGS]:
         return self._nargs
+
+    @property
+    def multiple(self) -> bool:
+        return self._multiple
