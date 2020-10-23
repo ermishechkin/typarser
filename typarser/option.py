@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from typing import (Generic, List, Literal, Optional, Type, TypeVar, Union,
-                    overload)
+from typing import (Callable, Generic, List, Literal, Optional, Type, TypeVar,
+                    Union, overload)
 
 NAMESPACE = TypeVar('NAMESPACE')
 TYPE = TypeVar('TYPE')
@@ -17,7 +17,7 @@ class Option(Generic[TYPE, RESULT]):
     def __init__(
         self: Option[TYPE, Optional[TYPE]],
         *,
-        type: Type[TYPE],
+        type: Callable[[str], TYPE],
         required: Literal[False] = False,
         nargs: Literal[None] = None,
         multiple: Literal[False] = False,
@@ -29,7 +29,7 @@ class Option(Generic[TYPE, RESULT]):
     def __init__(
         self: Option[TYPE, TYPE],
         *,
-        type: Type[TYPE],
+        type: Callable[[str], TYPE],
         required: Literal[True],
         nargs: Literal[None] = None,
         multiple: Literal[False] = False,
@@ -41,7 +41,7 @@ class Option(Generic[TYPE, RESULT]):
     def __init__(
         self: Option[TYPE, Optional[TYPE]],
         *,
-        type: Type[TYPE],
+        type: Callable[[str], TYPE],
         required: bool = False,
         nargs: Literal['?'],
         multiple: Literal[False] = False,
@@ -53,7 +53,7 @@ class Option(Generic[TYPE, RESULT]):
     def __init__(
         self: Option[TYPE, Optional[List[TYPE]]],
         *,
-        type: Type[TYPE],
+        type: Callable[[str], TYPE],
         required: Literal[False] = False,
         nargs: Union[int, Literal['*', '+']],
         multiple: Literal[False] = False,
@@ -65,7 +65,7 @@ class Option(Generic[TYPE, RESULT]):
     def __init__(
         self: Option[TYPE, List[TYPE]],
         *,
-        type: Type[TYPE],
+        type: Callable[[str], TYPE],
         required: Literal[True],
         nargs: Union[int, Literal['*', '+']],
         multiple: Literal[False] = False,
@@ -77,7 +77,7 @@ class Option(Generic[TYPE, RESULT]):
     def __init__(
         self: Option[TYPE, List[TYPE]],
         *,
-        type: Type[TYPE],
+        type: Callable[[str], TYPE],
         required: bool = False,
         nargs: Literal[None] = None,
         multiple: Literal[True],
@@ -89,7 +89,7 @@ class Option(Generic[TYPE, RESULT]):
     def __init__(
         self: Option[TYPE, List[Optional[TYPE]]],
         *,
-        type: Type[TYPE],
+        type: Callable[[str], TYPE],
         required: bool = False,
         nargs: Literal['?'],
         multiple: Literal[True],
@@ -101,7 +101,7 @@ class Option(Generic[TYPE, RESULT]):
     def __init__(
         self: Option[TYPE, List[List[TYPE]]],
         *,
-        type: Type[TYPE],
+        type: Callable[[str], TYPE],
         required: bool = False,
         nargs: Union[int, Literal['*', '+']],
         multiple: Literal[True],
@@ -114,7 +114,7 @@ class Option(Generic[TYPE, RESULT]):
     def __init__(
             self,
             *,
-            type: Type[TYPE],  # pylint: disable=redefined-builtin
+            type: Callable[[str], TYPE],  # pylint: disable=redefined-builtin
             required: bool = False,
             nargs: Optional[NARGS] = None,
             multiple: bool = False,
@@ -143,7 +143,7 @@ class Option(Generic[TYPE, RESULT]):
         raise AttributeError('Attributes are read-only')
 
     @property
-    def type(self) -> Type[TYPE]:
+    def type(self) -> Callable[[str], TYPE]:
         return self._type
 
     @property
