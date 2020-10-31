@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from typing import Generic, List, Type, TypeVar
 
-ARGS = TypeVar('ARGS')
+from .namespace import Namespace
+
+ARGS = TypeVar('ARGS', bound=Namespace)
 
 
 class Parser(Generic[ARGS]):

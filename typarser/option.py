@@ -3,7 +3,9 @@ from __future__ import annotations
 from typing import (Any, Callable, Generic, List, Literal, Optional, Type,
                     TypeVar, Union, overload)
 
-NAMESPACE = TypeVar('NAMESPACE')
+from .namespace import Namespace
+
+NAMESPACE = TypeVar('NAMESPACE', bound=Namespace)
 TYPE = TypeVar('TYPE')
 SELF = TypeVar('SELF', bound='Option')
 RESULT = TypeVar('RESULT')
