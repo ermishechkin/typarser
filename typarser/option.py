@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import (Any, Callable, Generic, List, Literal, Optional, Type,
                     TypeVar, Union, overload)
 
+from ._internal_namespace import register_option
 from .namespace import Namespace
 
 NAMESPACE = TypeVar('NAMESPACE', bound=Namespace)
@@ -163,6 +164,9 @@ class Option(Generic[TYPE, RESULT]):
     @property
     def multiple(self) -> bool:
         return self._multiple
+
+    def __set_name__(self, owner: Type[Namespace], name: str):
+        register_option(self, owner, name)
 
     # HACK: __init__ overloading doesn't work correctly for some linters.
     # Duplicate signatures for __new__ method.

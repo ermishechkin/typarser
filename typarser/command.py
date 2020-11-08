@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import (Any, Generic, Literal, Mapping, Optional, Type, TypeVar,
                     Union, overload)
 
+from ._internal_namespace import register_commands
 from .namespace import Namespace
 
 NAMESPACE = TypeVar('NAMESPACE', bound=Namespace)
@@ -58,6 +59,9 @@ class Commands(Generic[CMDS, RESULT]):
     @property
     def required(self) -> bool:
         return self._required
+
+    def __set_name__(self, owner: Type[Namespace], name: str):
+        register_commands(self, owner, name)
 
     # HACK: __init__ overloading doesn't work correctly for some linters.
     # Duplicate signatures for __new__ method.
