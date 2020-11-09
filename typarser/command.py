@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import (Any, Generic, Literal, Mapping, Optional, Type, TypeVar,
                     Union, overload)
 
-from ._internal_namespace import register_commands
+from ._internal_namespace import get_value, register_commands
 from .namespace import Namespace
 
 NAMESPACE = TypeVar('NAMESPACE', bound=Namespace)
@@ -48,9 +48,12 @@ class Commands(Generic[CMDS, RESULT]):
             -> RESULT:
         ...
 
-    def __get__(self: SELF, owner: Optional[NAMESPACE],
-                inst: Type[NAMESPACE]) -> Union[SELF, RESULT]:
-        raise NotImplementedError
+    def __get__(
+            self, owner: Optional[NAMESPACE],
+            inst: Type[NAMESPACE]) -> Union[Commands[CMDS, RESULT], RESULT]:
+        if owner is None:
+            return self
+        return get_value(owner, self)
 
     @property
     def entries(self) -> Mapping[str, Type[CMDS]]:

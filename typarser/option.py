@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import (Any, Callable, Generic, List, Literal, Optional, Type,
                     TypeVar, Union, overload)
 
-from ._internal_namespace import register_option
+from ._internal_namespace import get_value, register_option, set_value
 from .namespace import Namespace
 
 NAMESPACE = TypeVar('NAMESPACE', bound=Namespace)
@@ -138,12 +138,14 @@ class Option(Generic[TYPE, RESULT]):
     def __get__(self, owner: NAMESPACE, inst: Type[NAMESPACE]) -> RESULT:
         ...
 
-    def __get__(self: SELF, owner: Optional[NAMESPACE],
-                inst: Type[NAMESPACE]) -> Union[SELF, RESULT]:
-        raise NotImplementedError
+    def __get__(self, owner: Optional[NAMESPACE],
+                inst: Type[NAMESPACE]) -> Union[Option[TYPE, RESULT], RESULT]:
+        if owner is None:
+            return self
+        return get_value(owner, self)
 
     def __set__(self, owner: NAMESPACE, value: TYPE):
-        raise AttributeError('Attributes are read-only')
+        set_value(owner, self, value)
 
     @property
     def type(self) -> Callable[[str], TYPE]:

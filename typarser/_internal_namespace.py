@@ -12,6 +12,7 @@ if typing.TYPE_CHECKING:
     from .namespace import Namespace
     from .option import Option
     COMPONENT = Union[Namespace, Option[Any, Any], Commands[Any, Any]]
+    VALUES = Dict[Union[COMPONENT, Type['_CommandsKey']], Any]
 
 
 @dataclass
@@ -40,6 +41,13 @@ class NamespaceInternals:
         for container in self.command_containers:
             for name, namespace in container.entries.items():
                 self.commands[name] = namespace
+
+    def create_values(self) -> VALUES:
+        result: VALUES = {}
+        result.update({option: None for option in self.options})
+        if self.command_containers:
+            result[_CommandsKey] = None
+        return result
 
 
 def init_namespace(namespace: Type[Namespace], *, usage: Optional[str]):
@@ -71,5 +79,31 @@ def register_commands(commands: Commands[Any, Any], namespace: Type[Namespace],
     internals.add_commands(name, commands)
 
 
+def get_value(namespace: Namespace, component: COMPONENT) -> Any:
+    internals = get_namespace(type(namespace))
+    values = _values.get(namespace)
+    if values is None:
+        values = _values[namespace] = internals.create_values()
+    if component in internals.command_containers:
+        return values[_CommandsKey]
+    return values[component]
+
+
+def set_value(namespace: Namespace, component: COMPONENT, value: Any):
+    internals = get_namespace(type(namespace))
+    values = _values.get(namespace)
+    if values is None:
+        values = _values[namespace] = internals.create_values()
+    if component in internals.command_containers:
+        values[_CommandsKey] = value
+    values[component] = value
+
+
+class _CommandsKey:
+    pass
+
+
 _namespaces: MutableMapping[Type[Namespace], NamespaceInternals] = \
     WeakKeyDictionary()
+
+_values: MutableMapping[Namespace, VALUES] = WeakKeyDictionary()
