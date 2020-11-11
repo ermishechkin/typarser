@@ -13,12 +13,15 @@ SELF = TypeVar('SELF', bound='Commands')
 
 
 class Commands(Generic[CMDS, RESULT]):
+    # pylint: disable=redefined-builtin
+
     @overload
     def __init__(
         self: Commands[CMDS, CMDS],
         cmds: Mapping[str, Type[CMDS]],
         *,
         required: Literal[True],
+        help: Optional[str] = None,
     ) -> None:
         ...
 
@@ -28,15 +31,22 @@ class Commands(Generic[CMDS, RESULT]):
         cmds: Mapping[str, Type[CMDS]],
         *,
         required: Literal[False] = False,
+        help: Optional[str] = None,
     ) -> None:
         ...
 
-    def __init__(self,
-                 cmds: Mapping[str, Type[CMDS]],
-                 *,
-                 required: bool = False) -> None:
+    # pylint: enable=redefined-builtin
+
+    def __init__(
+            self,
+            cmds: Mapping[str, Type[CMDS]],
+            *,
+            required: bool = False,
+            help: Optional[str] = None,  # pylint: disable=redefined-builtin
+    ) -> None:
         self._cmds = cmds
         self._required = required
+        self._help = help
 
     @overload
     def __get__(self: SELF, owner: Literal[None], inst: Type[NAMESPACE]) \
@@ -63,11 +73,17 @@ class Commands(Generic[CMDS, RESULT]):
     def required(self) -> bool:
         return self._required
 
+    @property
+    def help(self) -> Optional[str]:
+        return self._help
+
     def __set_name__(self, owner: Type[Namespace], name: str):
         register_commands(self, owner, name)
 
     # HACK: __init__ overloading doesn't work correctly for some linters.
     # Duplicate signatures for __new__ method.
+
+    # pylint: disable=redefined-builtin
 
     @overload
     def __new__(
@@ -75,6 +91,7 @@ class Commands(Generic[CMDS, RESULT]):
         cmds: Mapping[str, Type[CMDS]],
         *,
         required: Literal[True],
+        help: Optional[str] = None,
     ) -> Commands[CMDS, CMDS]:
         ...
 
@@ -84,8 +101,11 @@ class Commands(Generic[CMDS, RESULT]):
         cmds: Mapping[str, Type[CMDS]],
         *,
         required: Literal[False] = False,
+        help: Optional[str] = None,
     ) -> Commands[CMDS, Optional[CMDS]]:
         ...
+
+    # pylint: enable=redefined-builtin
 
     def __new__(cls, *args: Any, **kwargs: Any):
         # pylint: disable=unused-argument
