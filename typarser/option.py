@@ -1,19 +1,19 @@
 from __future__ import annotations
 
-from typing import (Any, Callable, Generic, List, Literal, Optional, Type,
-                    TypeVar, Union, overload)
+import typing
+from typing import (Any, Callable, List, Literal, Optional, Type, Union,
+                    overload)
 
-from ._internal_namespace import get_value, register_option, set_value
+from ._base import RESULT, TYPE, BaseComponent
+from ._internal_namespace import register_option, set_value
 from .namespace import Namespace
 
-NAMESPACE = TypeVar('NAMESPACE', bound=Namespace)
-TYPE = TypeVar('TYPE')
-SELF = TypeVar('SELF', bound='Option')
-RESULT = TypeVar('RESULT')
-NARGS = Union[int, Literal['*'], Literal['+'], Literal['?']]
+if typing.TYPE_CHECKING:
+    from ._base import NAMESPACE
+    NARGS = Union[int, Literal['*'], Literal['+'], Literal['?']]
 
 
-class Option(Generic[TYPE, RESULT]):
+class Option(BaseComponent[TYPE, RESULT]):
     # pylint: disable=redefined-builtin
 
     @overload
@@ -123,26 +123,11 @@ class Option(Generic[TYPE, RESULT]):
             multiple: bool = False,
             help: Optional[str] = None,  # pylint: disable=redefined-builtin
     ):
+        super().__init__(help=help)
         self._type = type
         self._required = required
         self._nargs: Optional[NARGS] = nargs
         self._multiple = multiple
-        self._help = help
-
-    @overload
-    def __get__(self: SELF, owner: Literal[None], inst: Type[NAMESPACE]) \
-            -> SELF:
-        ...
-
-    @overload
-    def __get__(self, owner: NAMESPACE, inst: Type[NAMESPACE]) -> RESULT:
-        ...
-
-    def __get__(self, owner: Optional[NAMESPACE],
-                inst: Type[NAMESPACE]) -> Union[Option[TYPE, RESULT], RESULT]:
-        if owner is None:
-            return self
-        return get_value(owner, self)
 
     def __set__(self, owner: NAMESPACE, value: TYPE):
         set_value(owner, self, value)
@@ -150,10 +135,6 @@ class Option(Generic[TYPE, RESULT]):
     @property
     def type(self) -> Callable[[str], TYPE]:
         return self._type
-
-    @property
-    def help(self) -> Optional[str]:
-        return self._help
 
     @property
     def required(self) -> bool:

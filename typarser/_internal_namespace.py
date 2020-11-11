@@ -8,10 +8,11 @@ from weakref import WeakKeyDictionary
 from .errors import NamespaceNotRegisteredError
 
 if typing.TYPE_CHECKING:
+    from ._base import BaseComponent
     from .command import Commands
     from .namespace import Namespace
     from .option import Option
-    COMPONENT = Union[Namespace, Option[Any, Any], Commands[Any, Any]]
+    COMPONENT = BaseComponent[Any, Any]
     VALUES = Dict[Union[COMPONENT, Type['_CommandsKey']], Any]
 
 

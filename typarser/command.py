@@ -1,18 +1,16 @@
 from __future__ import annotations
 
-from typing import (Any, Generic, Literal, Mapping, Optional, Type, TypeVar,
-                    Union, overload)
+from typing import Any, Literal, Mapping, Optional, Type, TypeVar, overload
 
-from ._internal_namespace import get_value, register_commands
+from ._base import BaseComponent
+from ._internal_namespace import register_commands
 from .namespace import Namespace
 
-NAMESPACE = TypeVar('NAMESPACE', bound=Namespace)
 CMDS = TypeVar('CMDS', bound=Namespace, covariant=True)
 RESULT = TypeVar('RESULT')
-SELF = TypeVar('SELF', bound='Commands')
 
 
-class Commands(Generic[CMDS, RESULT]):
+class Commands(BaseComponent[CMDS, RESULT]):
     # pylint: disable=redefined-builtin
 
     @overload
@@ -44,26 +42,9 @@ class Commands(Generic[CMDS, RESULT]):
             required: bool = False,
             help: Optional[str] = None,  # pylint: disable=redefined-builtin
     ) -> None:
+        super().__init__(help=help)
         self._cmds = cmds
         self._required = required
-        self._help = help
-
-    @overload
-    def __get__(self: SELF, owner: Literal[None], inst: Type[NAMESPACE]) \
-            -> SELF:
-        ...
-
-    @overload
-    def __get__(self, owner: NAMESPACE, inst: Type[NAMESPACE]) \
-            -> RESULT:
-        ...
-
-    def __get__(
-            self, owner: Optional[NAMESPACE],
-            inst: Type[NAMESPACE]) -> Union[Commands[CMDS, RESULT], RESULT]:
-        if owner is None:
-            return self
-        return get_value(owner, self)
 
     @property
     def entries(self) -> Mapping[str, Type[CMDS]]:
@@ -72,10 +53,6 @@ class Commands(Generic[CMDS, RESULT]):
     @property
     def required(self) -> bool:
         return self._required
-
-    @property
-    def help(self) -> Optional[str]:
-        return self._help
 
     def __set_name__(self, owner: Type[Namespace], name: str):
         register_commands(self, owner, name)
