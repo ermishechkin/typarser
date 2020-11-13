@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import typing
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, MutableMapping, Optional, Set, Type, Union
+from typing import (Any, Dict, Literal, MutableMapping, Optional, Set, Tuple,
+                    Type, TypeVar, Union, cast, overload)
 from weakref import WeakKeyDictionary
 
 from .errors import NamespaceNotRegisteredError
@@ -14,40 +15,78 @@ if typing.TYPE_CHECKING:
     from .option import Option
     COMPONENT = BaseComponent[Any, Any]
     VALUES = Dict[Union[COMPONENT, Type['_CommandsKey']], Any]
+    TYPE = TypeVar('TYPE', bound=BaseComponent)
 
 
 @dataclass
 class NamespaceInternals:
-    components: Dict[COMPONENT, List[str]] = field(default_factory=lambda: {})
-    options: Set[Option[Any, Any]] = field(default_factory=set)
-    command_containers: Set[Commands[Any, Any]] = \
-        field(default_factory=set)
-    commands: Dict[str, Type[Namespace]] = field(default_factory=lambda: {})
+    namespace_class: Type[Namespace]
+    own_components: Dict[COMPONENT, Set[str]] = \
+        field(default_factory=lambda: {})
     usage: Optional[str] = None
     registered: bool = False
 
+    @property
+    def parents(self) -> Tuple[NamespaceInternals, ...]:
+        return _list_parents(self.namespace_class)
+
+    @property
+    def components(self) -> Dict[COMPONENT, Set[str]]:
+        result: Dict[COMPONENT, Set[str]] = {}
+        for parent in self.parents:
+            for component, names in parent.components.items():
+                all_names = result.setdefault(component, set())
+                all_names.update(names)
+
+        for component, names in result.items():
+            for name in names.copy():
+                if getattr(self.namespace_class, name, None) is not component:
+                    names.remove(name)
+
+        for component, names in list(result.items()):
+            if not names:
+                del result[component]
+
+        for component, names in self.own_components.items():
+            all_names = result.setdefault(component, set())
+            all_names.update(names)
+
+        return result
+
+    @property
+    def options(self) -> Set[Option[Any, Any]]:
+        return self._filter_components(_Option)
+
+    @property
+    def command_containers(self) -> Set[Commands[Any, Any]]:
+        return self._filter_components(_Commands)
+
+    @property
+    def commands(self) -> Dict[str, Type[Namespace]]:
+        result: Dict[str, Type[Namespace]] = {}
+        for container in self.command_containers:
+            result.update(container.entries)
+        return result
+
     def add_option(self, name: str, option: Option[Any, Any]):
-        self.options.add(option)
-        self.components.setdefault(option, [])
-        self.components[option].append(name)
+        self.own_components.setdefault(option, set())
+        self.own_components[option].add(name)
 
     def add_commands(self, name: str, commands: Commands[Any, Any]):
-        self.command_containers.add(commands)
-        self.components.setdefault(commands, [])
-        self.components[commands].append(name)
-        self._update_command_list()
-
-    def _update_command_list(self):
-        self.commands = {}
-        for container in self.command_containers:
-            for name, namespace in container.entries.items():
-                self.commands[name] = namespace
+        self.own_components.setdefault(commands, set())
+        self.own_components[commands].add(name)
 
     def create_values(self) -> VALUES:
         result: VALUES = {}
         result.update({option: None for option in self.options})
         if self.command_containers:
             result[_CommandsKey] = None
+        return result
+
+    def _filter_components(self, base: Type[TYPE]) -> Set[TYPE]:
+        result: Set[TYPE] = set(
+            cast(TYPE, comp) for comp in self.components
+            if isinstance(comp, base))
         return result
 
 
@@ -64,7 +103,7 @@ def get_namespace(namespace: Type[Namespace],
     except KeyError:
         if not create:
             raise NamespaceNotRegisteredError(namespace) from None
-        result = _namespaces[namespace] = NamespaceInternals()
+        result = _namespaces[namespace] = NamespaceInternals(namespace)
     return result
 
 
@@ -98,6 +137,38 @@ def set_value(namespace: Namespace, component: COMPONENT, value: Any):
     if component in internals.command_containers:
         values[_CommandsKey] = value
     values[component] = value
+
+
+_Option: Type[Option[Any, Any]]
+_Commands: Type[Commands[Any, Any]]
+
+
+@overload
+def register_library_class(class_name: Literal['Option'],
+                           cls: Type[Option[Any, Any]]):
+    ...
+
+
+@overload
+def register_library_class(class_name: Literal['Commands'],
+                           cls: Type[Commands[Any, Any]]):
+    ...
+
+
+def register_library_class(class_name: str, cls: Type[Any]):
+    # pylint: disable=global-statement,invalid-name
+    if class_name == 'Commands':
+        global _Commands
+        _Commands = cls
+    elif class_name == 'Option':
+        global _Option
+        _Option = cls
+
+
+def _list_parents(
+        namespace: Type[Namespace]) -> Tuple[NamespaceInternals, ...]:
+    bases: Tuple[Type[Any], ...] = namespace.__bases__
+    return tuple(_namespaces[base] for base in bases if base in _namespaces)
 
 
 class _CommandsKey:

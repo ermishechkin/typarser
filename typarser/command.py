@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any, Literal, Mapping, Optional, Type, TypeVar, overload
 
 from ._base import BaseComponent
-from ._internal_namespace import register_commands
+from ._internal_namespace import register_commands, register_library_class
 from .namespace import Namespace
 
 CMDS = TypeVar('CMDS', bound=Namespace, covariant=True)
@@ -87,3 +87,6 @@ class Commands(BaseComponent[CMDS, RESULT]):
     def __new__(cls, *args: Any, **kwargs: Any):
         # pylint: disable=unused-argument
         return object.__new__(cls)
+
+
+register_library_class('Commands', Commands)

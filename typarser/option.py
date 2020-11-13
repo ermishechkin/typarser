@@ -5,7 +5,8 @@ from typing import (Any, Callable, List, Literal, Optional, Type, Union,
                     overload)
 
 from ._base import RESULT, TYPE, BaseComponent
-from ._internal_namespace import register_option, set_value
+from ._internal_namespace import (register_library_class, register_option,
+                                  set_value)
 from .namespace import Namespace
 
 if typing.TYPE_CHECKING:
@@ -257,3 +258,6 @@ class Option(BaseComponent[TYPE, RESULT]):
     def __new__(cls, *args: Any, **kwargs: Any):
         # pylint: disable=unused-argument
         return object.__new__(cls)
+
+
+register_library_class('Option', Option)
