@@ -44,6 +44,8 @@ def _fill_parser(namespace: Type[Namespace], parser: ArgumentParser,
             type=option.type,
             required=option.required,
             nargs=option.nargs,  # type: ignore
+            choices=option.choices,  # type: ignore
+            default=option.default,
             action=('append' if option.multiple else 'store'),
             help=option.help,
             dest=key,
@@ -57,6 +59,8 @@ def _fill_parser(namespace: Type[Namespace], parser: ArgumentParser,
             *names,
             type=argument.type,
             nargs=argument.nargs,  # type: ignore
+            choices=argument.choices,  # type: ignore
+            default=argument.default,
             help=argument.help,
             dest=key,
         )
