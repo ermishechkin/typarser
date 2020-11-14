@@ -19,6 +19,7 @@ class BaseOptArg(BaseComponent[TYPE, RESULT]):
             nargs: Optional[NARGS],
             choices: Optional[Iterable[TYPE]],
             default: Optional[TYPE],
+            metavar: Optional[Union[str, Tuple[str, ...]]],
             help: Optional[str],  # pylint: disable=redefined-builtin
     ) -> None:
         super().__init__(help=help)
@@ -26,6 +27,7 @@ class BaseOptArg(BaseComponent[TYPE, RESULT]):
         self._nargs = nargs
         self._choices = tuple(choices) if choices else None
         self._default = default
+        self._metavar = metavar
 
     @property
     def type(self) -> Callable[[str], TYPE]:
@@ -42,6 +44,10 @@ class BaseOptArg(BaseComponent[TYPE, RESULT]):
     @property
     def default(self) -> Optional[TYPE]:
         return self._default
+
+    @property
+    def metavar(self) -> Optional[Union[str, Tuple[str, ...]]]:
+        return self._metavar
 
     def __set__(self, owner: NAMESPACE, value: TYPE):
         set_value(owner, self, value)

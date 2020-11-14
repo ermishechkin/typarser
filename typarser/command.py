@@ -19,6 +19,7 @@ class Commands(BaseComponent[CMDS, RESULT]):
         cmds: Mapping[str, Type[CMDS]],
         *,
         required: Literal[True],
+        metavar: Optional[str] = None,
         help: Optional[str] = None,
     ) -> None:
         ...
@@ -29,6 +30,7 @@ class Commands(BaseComponent[CMDS, RESULT]):
         cmds: Mapping[str, Type[CMDS]],
         *,
         required: Literal[False] = False,
+        metavar: Optional[str] = None,
         help: Optional[str] = None,
     ) -> None:
         ...
@@ -40,11 +42,13 @@ class Commands(BaseComponent[CMDS, RESULT]):
             cmds: Mapping[str, Type[CMDS]],
             *,
             required: bool = False,
+            metavar: Optional[str] = None,
             help: Optional[str] = None,  # pylint: disable=redefined-builtin
     ) -> None:
         super().__init__(help=help)
         self._cmds = cmds
         self._required = required
+        self._metavar = metavar
 
     @property
     def entries(self) -> Mapping[str, Type[CMDS]]:
@@ -53,6 +57,10 @@ class Commands(BaseComponent[CMDS, RESULT]):
     @property
     def required(self) -> bool:
         return self._required
+
+    @property
+    def metavar(self) -> Optional[str]:
+        return self._metavar
 
     def __set_name__(self, owner: Type[Namespace], name: str):
         register_commands(self, owner, name)

@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import typing
-from typing import (Any, Callable, Iterable, List, Literal, Optional, Type,
-                    Union, overload)
+from typing import (Any, Callable, Iterable, List, Literal, Optional, Tuple,
+                    Type, Union, overload)
 
 from ._base_optarg import RESULT, TYPE, BaseOptArg
 from ._internal_namespace import register_library_class, register_option
@@ -25,6 +25,7 @@ class Option(BaseOptArg[TYPE, RESULT]):
         multiple: Literal[False] = False,
         choices: Optional[Iterable[TYPE]] = None,
         default: Optional[TYPE] = None,
+        metavar: Optional[str] = None,
         help: Optional[str] = None,
     ):
         ...
@@ -39,6 +40,7 @@ class Option(BaseOptArg[TYPE, RESULT]):
         multiple: Literal[False] = False,
         choices: Optional[Iterable[TYPE]] = None,
         default: Optional[TYPE] = None,
+        metavar: Optional[str] = None,
         help: Optional[str] = None,
     ):
         ...
@@ -53,6 +55,7 @@ class Option(BaseOptArg[TYPE, RESULT]):
         multiple: Literal[False] = False,
         choices: Optional[Iterable[TYPE]] = None,
         default: Optional[TYPE] = None,
+        metavar: Optional[str] = None,
         help: Optional[str] = None,
     ):
         ...
@@ -63,10 +66,26 @@ class Option(BaseOptArg[TYPE, RESULT]):
         *,
         type: Callable[[str], TYPE],
         required: Literal[False] = False,
-        nargs: Union[int, Literal['*', '+']],
+        nargs: Literal['*', '+'],
         multiple: Literal[False] = False,
         choices: Optional[Iterable[TYPE]] = None,
         default: Optional[TYPE] = None,
+        metavar: Optional[Union[str, Tuple[str, str]]] = None,
+        help: Optional[str] = None,
+    ):
+        ...
+
+    @overload
+    def __init__(
+        self: Option[TYPE, Optional[List[TYPE]]],
+        *,
+        type: Callable[[str], TYPE],
+        required: Literal[False] = False,
+        nargs: int,
+        multiple: Literal[False] = False,
+        choices: Optional[Iterable[TYPE]] = None,
+        default: Optional[TYPE] = None,
+        metavar: Optional[Union[str, Tuple[str, ...]]] = None,
         help: Optional[str] = None,
     ):
         ...
@@ -77,10 +96,26 @@ class Option(BaseOptArg[TYPE, RESULT]):
         *,
         type: Callable[[str], TYPE],
         required: Literal[True],
-        nargs: Union[int, Literal['*', '+']],
+        nargs: Literal['*', '+'],
         multiple: Literal[False] = False,
         choices: Optional[Iterable[TYPE]] = None,
         default: Optional[TYPE] = None,
+        metavar: Optional[Union[str, Tuple[str, str]]] = None,
+        help: Optional[str] = None,
+    ):
+        ...
+
+    @overload
+    def __init__(
+        self: Option[TYPE, List[TYPE]],
+        *,
+        type: Callable[[str], TYPE],
+        required: Literal[True],
+        nargs: int,
+        multiple: Literal[False] = False,
+        choices: Optional[Iterable[TYPE]] = None,
+        default: Optional[TYPE] = None,
+        metavar: Optional[Union[str, Tuple[str, ...]]] = None,
         help: Optional[str] = None,
     ):
         ...
@@ -95,6 +130,7 @@ class Option(BaseOptArg[TYPE, RESULT]):
         multiple: Literal[True],
         choices: Optional[Iterable[TYPE]] = None,
         default: Optional[TYPE] = None,
+        metavar: Optional[str] = None,
         help: Optional[str] = None,
     ):
         ...
@@ -109,6 +145,7 @@ class Option(BaseOptArg[TYPE, RESULT]):
         multiple: Literal[True],
         choices: Optional[Iterable[TYPE]] = None,
         default: Optional[TYPE] = None,
+        metavar: Optional[str] = None,
         help: Optional[str] = None,
     ):
         ...
@@ -119,10 +156,26 @@ class Option(BaseOptArg[TYPE, RESULT]):
         *,
         type: Callable[[str], TYPE],
         required: bool = False,
-        nargs: Union[int, Literal['*', '+']],
+        nargs: Literal['*', '+'],
         multiple: Literal[True],
         choices: Optional[Iterable[TYPE]] = None,
         default: Optional[TYPE] = None,
+        metavar: Optional[Union[str, Tuple[str, str]]] = None,
+        help: Optional[str] = None,
+    ):
+        ...
+
+    @overload
+    def __init__(
+        self: Option[TYPE, List[List[TYPE]]],
+        *,
+        type: Callable[[str], TYPE],
+        required: bool = False,
+        nargs: int,
+        multiple: Literal[True],
+        choices: Optional[Iterable[TYPE]] = None,
+        default: Optional[TYPE] = None,
+        metavar: Optional[Union[str, Tuple[str, ...]]] = None,
         help: Optional[str] = None,
     ):
         ...
@@ -138,6 +191,7 @@ class Option(BaseOptArg[TYPE, RESULT]):
             multiple: bool = False,
             choices: Optional[Iterable[TYPE]] = None,
             default: Optional[TYPE] = None,
+            metavar: Optional[Union[str, Tuple[str, ...]]] = None,
             help: Optional[str] = None,  # pylint: disable=redefined-builtin
     ):
         super().__init__(
@@ -145,6 +199,7 @@ class Option(BaseOptArg[TYPE, RESULT]):
             nargs=nargs,
             choices=choices,
             default=default,
+            metavar=metavar,
             help=help,
         )
         self._required = required
@@ -176,6 +231,7 @@ class Option(BaseOptArg[TYPE, RESULT]):
         multiple: Literal[False] = False,
         choices: Optional[Iterable[TYPE]] = None,
         default: Optional[TYPE] = None,
+        metavar: Optional[str] = None,
         help: Optional[str] = None,
     ) -> Option[TYPE, Optional[TYPE]]:
         ...
@@ -190,6 +246,7 @@ class Option(BaseOptArg[TYPE, RESULT]):
         multiple: Literal[False] = False,
         choices: Optional[Iterable[TYPE]] = None,
         default: Optional[TYPE] = None,
+        metavar: Optional[str] = None,
         help: Optional[str] = None,
     ) -> Option[TYPE, TYPE]:
         ...
@@ -204,6 +261,7 @@ class Option(BaseOptArg[TYPE, RESULT]):
         multiple: Literal[False] = False,
         choices: Optional[Iterable[TYPE]] = None,
         default: Optional[TYPE] = None,
+        metavar: Optional[str] = None,
         help: Optional[str] = None,
     ) -> Option[TYPE, Optional[TYPE]]:
         ...
@@ -214,10 +272,26 @@ class Option(BaseOptArg[TYPE, RESULT]):
         *,
         type: Callable[[str], TYPE],
         required: Literal[False] = False,
-        nargs: Union[int, Literal['*', '+']],
+        nargs: Literal['*', '+'],
         multiple: Literal[False] = False,
         choices: Optional[Iterable[TYPE]] = None,
         default: Optional[TYPE] = None,
+        metavar: Optional[Union[str, Tuple[str, str]]] = None,
+        help: Optional[str] = None,
+    ) -> Option[TYPE, Optional[List[TYPE]]]:
+        ...
+
+    @overload
+    def __new__(
+        cls,
+        *,
+        type: Callable[[str], TYPE],
+        required: Literal[False] = False,
+        nargs: int,
+        multiple: Literal[False] = False,
+        choices: Optional[Iterable[TYPE]] = None,
+        default: Optional[TYPE] = None,
+        metavar: Optional[Union[str, Tuple[str, ...]]] = None,
         help: Optional[str] = None,
     ) -> Option[TYPE, Optional[List[TYPE]]]:
         ...
@@ -228,10 +302,26 @@ class Option(BaseOptArg[TYPE, RESULT]):
         *,
         type: Callable[[str], TYPE],
         required: Literal[True],
-        nargs: Union[int, Literal['*', '+']],
+        nargs: Literal['*', '+'],
         multiple: Literal[False] = False,
         choices: Optional[Iterable[TYPE]] = None,
         default: Optional[TYPE] = None,
+        metavar: Optional[Union[str, Tuple[str, str]]] = None,
+        help: Optional[str] = None,
+    ) -> Option[TYPE, List[TYPE]]:
+        ...
+
+    @overload
+    def __new__(
+        cls,
+        *,
+        type: Callable[[str], TYPE],
+        required: Literal[True],
+        nargs: int,
+        multiple: Literal[False] = False,
+        choices: Optional[Iterable[TYPE]] = None,
+        default: Optional[TYPE] = None,
+        metavar: Optional[Union[str, Tuple[str, ...]]] = None,
         help: Optional[str] = None,
     ) -> Option[TYPE, List[TYPE]]:
         ...
@@ -246,6 +336,7 @@ class Option(BaseOptArg[TYPE, RESULT]):
         multiple: Literal[True],
         choices: Optional[Iterable[TYPE]] = None,
         default: Optional[TYPE] = None,
+        metavar: Optional[str] = None,
         help: Optional[str] = None,
     ) -> Option[TYPE, List[TYPE]]:
         ...
@@ -260,6 +351,7 @@ class Option(BaseOptArg[TYPE, RESULT]):
         multiple: Literal[True],
         choices: Optional[Iterable[TYPE]] = None,
         default: Optional[TYPE] = None,
+        metavar: Optional[str] = None,
         help: Optional[str] = None,
     ) -> Option[TYPE, List[Optional[TYPE]]]:
         ...
@@ -270,10 +362,26 @@ class Option(BaseOptArg[TYPE, RESULT]):
         *,
         type: Callable[[str], TYPE],
         required: bool = False,
-        nargs: Union[int, Literal['*', '+']],
+        nargs: Literal['*', '+'],
         multiple: Literal[True],
         choices: Optional[Iterable[TYPE]] = None,
         default: Optional[TYPE] = None,
+        metavar: Optional[Union[str, Tuple[str, str]]] = None,
+        help: Optional[str] = None,
+    ) -> Option[TYPE, List[List[TYPE]]]:
+        ...
+
+    @overload
+    def __new__(
+        cls,
+        *,
+        type: Callable[[str], TYPE],
+        required: bool = False,
+        nargs: int,
+        multiple: Literal[True],
+        choices: Optional[Iterable[TYPE]] = None,
+        default: Optional[TYPE] = None,
+        metavar: Optional[Union[str, Tuple[str, ...]]] = None,
         help: Optional[str] = None,
     ) -> Option[TYPE, List[List[TYPE]]]:
         ...

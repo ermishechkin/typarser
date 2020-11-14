@@ -23,6 +23,7 @@ class Argument(BaseOptArg[TYPE, RESULT]):
         nargs: Literal[None] = None,
         choices: Optional[Iterable[TYPE]] = None,
         default: Optional[TYPE] = None,
+        metavar: Optional[str] = None,
         help: Optional[str] = None,
     ):
         ...
@@ -35,6 +36,7 @@ class Argument(BaseOptArg[TYPE, RESULT]):
         nargs: Literal['?'],
         choices: Optional[Iterable[TYPE]] = None,
         default: Optional[TYPE] = None,
+        metavar: Optional[str] = None,
         help: Optional[str] = None,
     ):
         ...
@@ -47,6 +49,7 @@ class Argument(BaseOptArg[TYPE, RESULT]):
         nargs: Union[int, Literal['*'], Literal['+']],
         choices: Optional[Iterable[TYPE]] = None,
         default: Optional[TYPE] = None,
+        metavar: Optional[str] = None,  # https://bugs.python.org/issue14074
         help: Optional[str] = None,
     ):
         ...
@@ -60,6 +63,7 @@ class Argument(BaseOptArg[TYPE, RESULT]):
             nargs: Optional[NARGS] = None,
             choices: Optional[Iterable[TYPE]] = None,
             default: Optional[TYPE] = None,
+            metavar: Optional[str] = None,
             help: Optional[str] = None,  # pylint: disable=redefined-builtin
     ):
         super().__init__(
@@ -67,6 +71,7 @@ class Argument(BaseOptArg[TYPE, RESULT]):
             nargs=nargs,
             choices=choices,
             default=default,
+            metavar=metavar,
             help=help,
         )
 
@@ -86,6 +91,7 @@ class Argument(BaseOptArg[TYPE, RESULT]):
         nargs: Literal[None] = None,
         choices: Optional[Iterable[TYPE]] = None,
         default: Optional[TYPE] = None,
+        metavar: Optional[str] = None,
         help: Optional[str] = None,
     ) -> Argument[TYPE, TYPE]:
         ...
@@ -98,6 +104,7 @@ class Argument(BaseOptArg[TYPE, RESULT]):
         nargs: Literal['?'],
         choices: Optional[Iterable[TYPE]] = None,
         default: Optional[TYPE] = None,
+        metavar: Optional[str] = None,
         help: Optional[str] = None,
     ) -> Argument[TYPE, Optional[TYPE]]:
         ...
@@ -110,6 +117,7 @@ class Argument(BaseOptArg[TYPE, RESULT]):
         nargs: Union[int, Literal['*'], Literal['+']],
         choices: Optional[Iterable[TYPE]] = None,
         default: Optional[TYPE] = None,
+        metavar: Optional[str] = None,
         help: Optional[str] = None,
     ) -> Argument[TYPE, List[TYPE]]:
         ...

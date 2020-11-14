@@ -53,6 +53,7 @@ def _fill_options(internals: NamespaceInternals, parser: ArgumentParser,
             nargs=option.nargs,  # type: ignore
             choices=option.choices,  # type: ignore
             default=option.default,
+            metavar=option.metavar,
             action=('append' if option.multiple else 'store'),
             help=option.help,
             dest=key,
@@ -71,6 +72,7 @@ def _fill_arguments(internals: NamespaceInternals, parser: ArgumentParser,
             nargs=argument.nargs,  # type: ignore
             choices=argument.choices,  # type: ignore
             default=argument.default,
+            metavar=argument.metavar,
             help=argument.help,
             dest=key,
         )
@@ -86,8 +88,18 @@ def _fill_commands(internals: NamespaceInternals, parser: ArgumentParser,
                 break
         else:
             command_required = False
+
+        metavar = None
+        for command_container in internals.command_containers:
+            if command_container.metavar is not None:
+                metavar = command_container.metavar
+
         key = f'opt_{next(counter)}'
-        subparsers = parser.add_subparsers(required=command_required, dest=key)
+        subparsers = parser.add_subparsers(
+            required=command_required,
+            dest=key,
+            metavar=metavar,
+        )
         names_submap: Dict[str, _Subcommand] = {}
         names_map[key] = _Subcommands(next(iter(internals.command_containers)),
                                       names_submap)
