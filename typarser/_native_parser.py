@@ -8,7 +8,7 @@ from typing import Any, Dict, Iterator, NamedTuple, Tuple, Type, TypeVar, Union
 from ._internal_namespace import get_namespace, set_value
 
 if typing.TYPE_CHECKING:
-    from ._internal_namespace import COMPONENT
+    from ._internal_namespace import COMPONENT, NamespaceInternals
     from .command import Commands
     from .namespace import Namespace
     ARGS = TypeVar('ARGS', bound=Namespace)
@@ -32,7 +32,14 @@ def _fill_parser(namespace: Type[Namespace], parser: ArgumentParser,
                  counter: Iterator[int]) -> MAP:
     internals = get_namespace(namespace)
     names_map: MAP = {}
+    _fill_options(internals, parser, names_map, counter)
+    _fill_arguments(internals, parser, names_map, counter)
+    _fill_commands(internals, parser, names_map, counter)
+    return names_map
 
+
+def _fill_options(internals: NamespaceInternals, parser: ArgumentParser,
+                  names_map: MAP, counter: Iterator[int]) -> None:
     for option in internals.options:
         names = [
             f'-{name}' if len(name) == 1 else f'--{name}'
@@ -52,6 +59,9 @@ def _fill_parser(namespace: Type[Namespace], parser: ArgumentParser,
         )
         names_map[key] = option
 
+
+def _fill_arguments(internals: NamespaceInternals, parser: ArgumentParser,
+                    names_map: MAP, counter: Iterator[int]) -> None:
     for argument in internals.arguments:
         names = list(internals.components[argument])
         key = f'opt_{next(counter)}'
@@ -66,6 +76,9 @@ def _fill_parser(namespace: Type[Namespace], parser: ArgumentParser,
         )
         names_map[key] = argument
 
+
+def _fill_commands(internals: NamespaceInternals, parser: ArgumentParser,
+                   names_map: MAP, counter: Iterator[int]) -> None:
     if internals.command_containers:
         for command_container in internals.command_containers:
             if command_container.required:
@@ -82,8 +95,6 @@ def _fill_parser(namespace: Type[Namespace], parser: ArgumentParser,
             subparser = subparsers.add_parser(name)
             names_submap[name] = _Subcommand(
                 _fill_parser(subnamespace, subparser, counter), subnamespace)
-
-    return names_map
 
 
 def _unpack_native_values(native: Dict[str, Any], names_map: MAP,
