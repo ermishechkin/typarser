@@ -10,6 +10,7 @@ from .errors import NamespaceNotRegisteredError
 
 if typing.TYPE_CHECKING:
     from ._base import BaseComponent
+    from .argument import Argument
     from .command import Commands
     from .namespace import Namespace
     from .option import Option
@@ -58,6 +59,10 @@ class NamespaceInternals:
         return self._filter_components(_Option)
 
     @property
+    def arguments(self) -> Set[Argument[Any, Any]]:
+        return self._filter_components(_Argument)
+
+    @property
     def command_containers(self) -> Set[Commands[Any, Any]]:
         return self._filter_components(_Commands)
 
@@ -72,6 +77,10 @@ class NamespaceInternals:
         self.own_components.setdefault(option, set())
         self.own_components[option].add(name)
 
+    def add_argument(self, name: str, argument: Argument[Any, Any]):
+        self.own_components.setdefault(argument, set())
+        self.own_components[argument].add(name)
+
     def add_commands(self, name: str, commands: Commands[Any, Any]):
         self.own_components.setdefault(commands, set())
         self.own_components[commands].add(name)
@@ -79,6 +88,7 @@ class NamespaceInternals:
     def create_values(self) -> VALUES:
         result: VALUES = {}
         result.update({option: None for option in self.options})
+        result.update({argument: None for argument in self.arguments})
         if self.command_containers:
             result[_CommandsKey] = None
         return result
@@ -113,6 +123,12 @@ def register_option(option: Option[Any, Any], namespace: Type[Namespace],
     internals.add_option(name, option)
 
 
+def register_argument(argument: Argument[Any, Any], namespace: Type[Namespace],
+                      name: str):
+    internals = get_namespace(namespace, create=True)
+    internals.add_argument(name, argument)
+
+
 def register_commands(commands: Commands[Any, Any], namespace: Type[Namespace],
                       name: str):
     internals = get_namespace(namespace, create=True)
@@ -140,12 +156,19 @@ def set_value(namespace: Namespace, component: COMPONENT, value: Any):
 
 
 _Option: Type[Option[Any, Any]]
+_Argument: Type[Argument[Any, Any]]
 _Commands: Type[Commands[Any, Any]]
 
 
 @overload
 def register_library_class(class_name: Literal['Option'],
                            cls: Type[Option[Any, Any]]):
+    ...
+
+
+@overload
+def register_library_class(class_name: Literal['Argument'],
+                           cls: Type[Argument[Any, Any]]):
     ...
 
 
@@ -163,6 +186,9 @@ def register_library_class(class_name: str, cls: Type[Any]):
     elif class_name == 'Option':
         global _Option
         _Option = cls
+    elif class_name == 'Argument':
+        global _Argument
+        _Argument = cls
 
 
 def _list_parents(

@@ -50,6 +50,18 @@ def _fill_parser(namespace: Type[Namespace], parser: ArgumentParser,
         )
         names_map[key] = option
 
+    for argument in internals.arguments:
+        names = list(internals.components[argument])
+        key = f'opt_{next(counter)}'
+        parser.add_argument(
+            *names,
+            type=argument.type,
+            nargs=argument.nargs,  # type: ignore
+            help=argument.help,
+            dest=key,
+        )
+        names_map[key] = argument
+
     if internals.command_containers:
         for command_container in internals.command_containers:
             if command_container.required:

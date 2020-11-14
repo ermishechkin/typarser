@@ -4,17 +4,15 @@ import typing
 from typing import (Any, Callable, List, Literal, Optional, Type, Union,
                     overload)
 
-from ._base import RESULT, TYPE, BaseComponent
-from ._internal_namespace import (register_library_class, register_option,
-                                  set_value)
+from ._base_optarg import RESULT, TYPE, BaseOptArg
+from ._internal_namespace import register_library_class, register_option
 from .namespace import Namespace
 
 if typing.TYPE_CHECKING:
-    from ._base import NAMESPACE
-    NARGS = Union[int, Literal['*'], Literal['+'], Literal['?']]
+    from ._base_optarg import NARGS
 
 
-class Option(BaseComponent[TYPE, RESULT]):
+class Option(BaseOptArg[TYPE, RESULT]):
     # pylint: disable=redefined-builtin
 
     @overload
@@ -124,26 +122,13 @@ class Option(BaseComponent[TYPE, RESULT]):
             multiple: bool = False,
             help: Optional[str] = None,  # pylint: disable=redefined-builtin
     ):
-        super().__init__(help=help)
-        self._type = type
+        super().__init__(type=type, nargs=nargs, help=help)
         self._required = required
-        self._nargs: Optional[NARGS] = nargs
         self._multiple = multiple
-
-    def __set__(self, owner: NAMESPACE, value: TYPE):
-        set_value(owner, self, value)
-
-    @property
-    def type(self) -> Callable[[str], TYPE]:
-        return self._type
 
     @property
     def required(self) -> bool:
         return self._required
-
-    @property
-    def nargs(self) -> Optional[NARGS]:
-        return self._nargs
 
     @property
     def multiple(self) -> bool:
