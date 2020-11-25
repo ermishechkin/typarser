@@ -1,0 +1,10 @@
+include LICENSE
+include .pylintrc
+include pyrightconfig.json
+graft .github
+graft tests
+graft typarser
+global-exclude *.py[co]
+prune **/__pycache__
+prune **/.mypy_cache
+prune **/.pytest_cache

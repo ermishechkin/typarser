@@ -1,3 +1,4 @@
+from ._version import __version__
 from .argument import Argument
 from .command import Commands
 from .errors import NamespaceNotRegisteredError
