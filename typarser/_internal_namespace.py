@@ -9,6 +9,7 @@ from weakref import WeakKeyDictionary
 from .errors import NamespaceNotRegisteredError
 
 if typing.TYPE_CHECKING:
+    # pylint: disable=cyclic-import
     from ._base import BaseComponent
     from .argument import Argument
     from .command import Commands
@@ -17,6 +18,7 @@ if typing.TYPE_CHECKING:
     COMPONENT = BaseComponent[Any, Any]
     VALUES = Dict[Union[COMPONENT, Type['_CommandsKey']], Any]
     TYPE = TypeVar('TYPE', bound=BaseComponent)
+    # pylint: enable=cyclic-import
 
 
 @dataclass

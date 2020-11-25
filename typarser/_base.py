@@ -6,9 +6,11 @@ from typing import Generic, Literal, Optional, Type, TypeVar, Union, overload
 from ._internal_namespace import get_value
 
 if typing.TYPE_CHECKING:
+    # pylint: disable=cyclic-import
     from .namespace import Namespace
     NAMESPACE = TypeVar('NAMESPACE', bound=Namespace)
     SELF = TypeVar('SELF', bound='BaseComponent')
+    # pylint: enable=cyclic-import
 
 TYPE = TypeVar('TYPE')
 RESULT = TypeVar('RESULT')
