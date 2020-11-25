@@ -1,0 +1,50 @@
+name: Lint package code
+
+on:
+  push:
+    branches:
+
+jobs:
+  pylint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Set up Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: "3.8"
+      - name: Install dev dependencies
+        run: pip install pylint
+      - name: Lint with pylint
+        run: pylint typarser
+  pyright:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Set up Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: "3.8"
+      - name: Set up npm for linter
+        uses: actions/setup-node@v1
+        with:
+          node-version: "12"
+      - name: Install dev dependencies
+        run: npm install -g pyright
+      - name: Lint with pyright
+        run: pyright typarser
+  codestyle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Set up Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: "3.8"
+      - name: Install dev dependencies
+        run: pip install pycodestyle yapf
+      - name: Lint with pycodestyle
+        run: pycodestyle typarser
+      - name: Lint with yapf
+        if: always()
+        run: yapf --recursive --diff typarser
