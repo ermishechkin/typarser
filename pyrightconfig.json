@@ -1,0 +1,8 @@
+{
+  "typeCheckingMode": "strict",
+  "useLibraryCodeForTypes": true,
+  "venv": ".venv",
+  "strictListInference": true,
+  "strictDictionaryInference": true,
+  "reportImportCycles": "none"
+}
