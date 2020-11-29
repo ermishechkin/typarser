@@ -40,14 +40,13 @@ def _fill_parser(namespace: Type[Namespace], parser: ArgumentParser,
 
 def _fill_options(internals: NamespaceInternals, parser: ArgumentParser,
                   names_map: MAP, counter: Iterator[int]) -> None:
-    for option in internals.options:
-        names = [
-            f'-{name}' if len(name) == 1 else f'--{name}'
-            for name in internals.components[option]
+    for option, names in internals.options.items():
+        names_prefixed = [
+            f'-{name}' if len(name) == 1 else f'--{name}' for name in names
         ]
         key = f'opt_{next(counter)}'
         parser.add_argument(
-            *names,
+            *names_prefixed,
             type=option.type,
             required=option.required,
             nargs=option.nargs,  # type: ignore
@@ -63,8 +62,7 @@ def _fill_options(internals: NamespaceInternals, parser: ArgumentParser,
 
 def _fill_arguments(internals: NamespaceInternals, parser: ArgumentParser,
                     names_map: MAP, counter: Iterator[int]) -> None:
-    for argument in internals.arguments:
-        names = list(internals.components[argument])
+    for argument, names in internals.arguments.items():
         key = f'opt_{next(counter)}'
         parser.add_argument(
             *names,

@@ -24,8 +24,7 @@ if typing.TYPE_CHECKING:
 @dataclass
 class NamespaceInternals:
     namespace_class: Type[Namespace]
-    own_components: Dict[COMPONENT, Set[str]] = \
-        field(default_factory=lambda: {})
+    own_components: Dict[str, COMPONENT] = field(default_factory=lambda: {})
     usage: Optional[str] = None
     registered: bool = False
 
@@ -34,38 +33,36 @@ class NamespaceInternals:
         return _list_parents(self.namespace_class)
 
     @property
-    def components(self) -> Dict[COMPONENT, Set[str]]:
-        result: Dict[COMPONENT, Set[str]] = {}
+    def inherited_components(self) -> Dict[str, COMPONENT]:
+        result: Dict[str, COMPONENT] = {}
         for parent in self.parents:
-            for component, names in parent.components.items():
-                all_names = result.setdefault(component, set())
-                all_names.update(names)
+            result.update(parent.components)
 
-        for component, names in result.items():
-            for name in names.copy():
-                if getattr(self.namespace_class, name, None) is not component:
-                    names.remove(name)
-
-        for component, names in list(result.items()):
-            if not names:
-                del result[component]
-
-        for component, names in self.own_components.items():
-            all_names = result.setdefault(component, set())
-            all_names.update(names)
+        for name, component in result.copy().items():
+            if getattr(self.namespace_class, name, None) is not component:
+                del result[name]
 
         return result
 
     @property
-    def options(self) -> Set[Option[Any, Any]]:
+    def components(self) -> Dict[str, COMPONENT]:
+        result = self.inherited_components
+        result.update(self.own_components)
+        return result
+
+    @property
+    def options(self) -> Dict[Option[Any, Any], Set[str]]:
         return self._filter_components(_Option)
 
     @property
-    def arguments(self) -> Set[Argument[Any, Any]]:
-        return self._filter_components(_Argument)
+    def arguments(self) -> Dict[Argument[Any, Any], str]:
+        return {
+            component: next(iter(names))  # MUST contain exactly one name
+            for component, names in self._filter_components(_Argument).items()
+        }
 
     @property
-    def command_containers(self) -> Set[Commands[Any, Any]]:
+    def command_containers(self) -> Dict[Commands[Any, Any], Set[str]]:
         return self._filter_components(_Commands)
 
     @property
@@ -76,8 +73,7 @@ class NamespaceInternals:
         return result
 
     def add_component(self, name: str, component: BaseComponent[Any, Any]):
-        names = self.own_components.setdefault(component, set())
-        names.add(name)
+        self.own_components[name] = component
 
     def create_values(self) -> VALUES:
         result: VALUES = {}
@@ -87,10 +83,12 @@ class NamespaceInternals:
             result[_CommandsKey] = None
         return result
 
-    def _filter_components(self, base: Type[TYPE]) -> Set[TYPE]:
-        result: Set[TYPE] = set(
-            cast(TYPE, comp) for comp in self.components
-            if isinstance(comp, base))
+    def _filter_components(self, base: Type[TYPE]) -> Dict[TYPE, Set[str]]:
+        result = {
+            cast('TYPE', comp): names
+            for comp, names in _aggregate_components(self.components).items()
+            if isinstance(comp, base)  # type: ignore
+        }
         return result
 
 
@@ -177,6 +175,15 @@ def _list_parents(
         namespace: Type[Namespace]) -> Tuple[NamespaceInternals, ...]:
     bases: Tuple[Type[Any], ...] = namespace.__bases__
     return tuple(_namespaces[base] for base in bases if base in _namespaces)
+
+
+def _aggregate_components(
+        components: Dict[str, COMPONENT]) -> Dict[COMPONENT, Set[str]]:
+    result: Dict[COMPONENT, Set[str]] = {}
+    for name, component in components.items():
+        all_names = result.setdefault(component, set())
+        all_names.add(name)
+    return result
 
 
 class _CommandsKey:
