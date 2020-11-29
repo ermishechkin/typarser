@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any, Literal, Mapping, Optional, Type, TypeVar, overload
 
 from ._base import BaseComponent
-from ._internal_namespace import register_commands, register_library_class
+from ._internal_namespace import register_component, register_library_class
 from .namespace import Namespace
 
 CMDS = TypeVar('CMDS', bound=Namespace, covariant=True)
@@ -63,7 +63,7 @@ class Commands(BaseComponent[CMDS, RESULT]):
         return self._metavar
 
     def __set_name__(self, owner: Type[Namespace], name: str):
-        register_commands(self, owner, name)
+        register_component(owner, name, self)
 
     # HACK: __init__ overloading doesn't work correctly for some linters.
     # Duplicate signatures for __new__ method.

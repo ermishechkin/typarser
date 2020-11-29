@@ -5,7 +5,7 @@ from typing import (Any, Callable, Iterable, List, Literal, Optional, Tuple,
                     Type, Union, overload)
 
 from ._base_optarg import RESULT, TYPE, BaseOptArg
-from ._internal_namespace import register_library_class, register_option
+from ._internal_namespace import register_component, register_library_class
 from .namespace import Namespace
 
 if typing.TYPE_CHECKING:
@@ -214,7 +214,7 @@ class Option(BaseOptArg[TYPE, RESULT]):
         return self._multiple
 
     def __set_name__(self, owner: Type[Namespace], name: str):
-        register_option(self, owner, name)
+        register_component(owner, name, self)
 
     # HACK: __init__ overloading doesn't work correctly for some linters.
     # Duplicate signatures for __new__ method.

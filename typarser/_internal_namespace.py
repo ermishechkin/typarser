@@ -75,17 +75,9 @@ class NamespaceInternals:
             result.update(container.entries)
         return result
 
-    def add_option(self, name: str, option: Option[Any, Any]):
-        self.own_components.setdefault(option, set())
-        self.own_components[option].add(name)
-
-    def add_argument(self, name: str, argument: Argument[Any, Any]):
-        self.own_components.setdefault(argument, set())
-        self.own_components[argument].add(name)
-
-    def add_commands(self, name: str, commands: Commands[Any, Any]):
-        self.own_components.setdefault(commands, set())
-        self.own_components[commands].add(name)
+    def add_component(self, name: str, component: BaseComponent[Any, Any]):
+        names = self.own_components.setdefault(component, set())
+        names.add(name)
 
     def create_values(self) -> VALUES:
         result: VALUES = {}
@@ -119,22 +111,10 @@ def get_namespace(namespace: Type[Namespace],
     return result
 
 
-def register_option(option: Option[Any, Any], namespace: Type[Namespace],
-                    name: str):
+def register_component(namespace: Type[Namespace], name: str,
+                       component: BaseComponent[Any, Any]):
     internals = get_namespace(namespace, create=True)
-    internals.add_option(name, option)
-
-
-def register_argument(argument: Argument[Any, Any], namespace: Type[Namespace],
-                      name: str):
-    internals = get_namespace(namespace, create=True)
-    internals.add_argument(name, argument)
-
-
-def register_commands(commands: Commands[Any, Any], namespace: Type[Namespace],
-                      name: str):
-    internals = get_namespace(namespace, create=True)
-    internals.add_commands(name, commands)
+    internals.add_component(name, component)
 
 
 def get_value(namespace: Namespace, component: COMPONENT) -> Any:
