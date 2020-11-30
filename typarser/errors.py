@@ -21,7 +21,7 @@ class InvalidComponentNameError(ParserError):
         super().__init__(f'"{name}" is not a valid component name')
 
 
-class ComponentOverrideForbidenError(ParserError):
+class ComponentOverrideForbiddenError(ParserError):
     def __init__(self, name: str) -> None:
         super().__init__(
             f'Component "{name}" was already defined in parent class.'
@@ -32,3 +32,8 @@ class ComponentAlreayExistsError(ParserError):
     def __init__(self, name: str) -> None:
         super().__init__(f'Component "{name}" already exists in namespace.'
                          ' Specify overwrite=True explicitly.')
+
+
+class ComponentNotExistError(ParserError):
+    def __init__(self, name: str) -> None:
+        super().__init__(f'Component "{name}" does not exist in namespace')

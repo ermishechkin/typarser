@@ -7,9 +7,11 @@ from typing import (Any, Dict, Literal, MutableMapping, Optional, Set, Tuple,
                     Type, TypeVar, Union, cast, overload)
 from weakref import WeakKeyDictionary
 
-from .errors import (ComponentAlreayExistsError,
-                     ComponentOverrideForbidenError, InvalidComponentNameError,
-                     InvalidComponentTypeError, NamespaceNotRegisteredError)
+from ._removed_component import RemovedComponent
+from .errors import (ComponentAlreayExistsError, ComponentNotExistError,
+                     ComponentOverrideForbiddenError,
+                     InvalidComponentNameError, InvalidComponentTypeError,
+                     NamespaceNotRegisteredError)
 
 if typing.TYPE_CHECKING:
     # pylint: disable=cyclic-import
@@ -28,6 +30,7 @@ if typing.TYPE_CHECKING:
 class NamespaceInternals:
     namespace_class: Type[Namespace]
     own_components: Dict[str, COMPONENT] = field(default_factory=lambda: {})
+    removed_names: Set[str] = field(default_factory=set)
     usage: Optional[str] = None
     registered: bool = False
 
@@ -40,6 +43,9 @@ class NamespaceInternals:
         result: Dict[str, COMPONENT] = {}
         for parent in self.parents:
             result.update(parent.components)
+
+        for name in self.removed_names:
+            result.pop(name, None)
 
         for name, component in result.copy().items():
             if getattr(self.namespace_class, name, None) is not component:
@@ -81,7 +87,7 @@ class NamespaceInternals:
                           (_Argument, _Commands, _Option)):  # type: ignore
             raise InvalidComponentTypeError()
         if not allow_override and name in self.inherited_components:
-            raise ComponentOverrideForbidenError(name)
+            raise ComponentOverrideForbiddenError(name)
         if name in self.own_components:
             if not allow_overwrite:
                 raise ComponentAlreayExistsError(name)
@@ -89,6 +95,16 @@ class NamespaceInternals:
             raise InvalidComponentNameError(name)
         setattr(self.namespace_class, name, component)
         self.own_components[name] = component
+
+    def remove_component(self, name: str):
+        if name in self.own_components:
+            del self.own_components[name]
+            delattr(self.namespace_class, name)
+        elif name in self.inherited_components:
+            setattr(self.namespace_class, name, RemovedComponent())
+            self.removed_names.add(name)
+        else:
+            raise ComponentNotExistError(name)
 
     def create_values(self) -> VALUES:
         result: VALUES = {}
@@ -135,6 +151,11 @@ def register_component(namespace: Type[Namespace],
                             component,
                             allow_override=allow_override,
                             allow_overwrite=allow_overwrite)
+
+
+def unregister_component(namespace: Type[Namespace], name: str):
+    internals = get_namespace(namespace, create=True)
+    internals.remove_component(name)
 
 
 def get_value(namespace: Namespace, component: COMPONENT) -> Any:

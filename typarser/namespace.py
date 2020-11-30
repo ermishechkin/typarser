@@ -3,7 +3,8 @@ from __future__ import annotations
 import typing
 from typing import Optional, Type
 
-from ._internal_namespace import init_namespace, register_component
+from ._internal_namespace import (init_namespace, register_component,
+                                  unregister_component)
 
 if typing.TYPE_CHECKING:
     from ._base import RESULT, TYPE, BaseComponent
@@ -24,3 +25,7 @@ def ns_add(namespace: Type[Namespace],
                        component,
                        allow_override=override,
                        allow_overwrite=overwrite)
+
+
+def ns_remove(namespace: Type[Namespace], name: str) -> None:
+    unregister_component(namespace, name)
