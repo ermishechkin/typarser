@@ -2,11 +2,14 @@ from __future__ import annotations
 
 import typing
 from dataclasses import dataclass, field
+from keyword import iskeyword
 from typing import (Any, Dict, Literal, MutableMapping, Optional, Set, Tuple,
                     Type, TypeVar, Union, cast, overload)
 from weakref import WeakKeyDictionary
 
-from .errors import NamespaceNotRegisteredError
+from .errors import (ComponentAlreayExistsError,
+                     ComponentOverrideForbidenError, InvalidComponentNameError,
+                     InvalidComponentTypeError, NamespaceNotRegisteredError)
 
 if typing.TYPE_CHECKING:
     # pylint: disable=cyclic-import
@@ -72,7 +75,19 @@ class NamespaceInternals:
             result.update(container.entries)
         return result
 
-    def add_component(self, name: str, component: BaseComponent[Any, Any]):
+    def add_component(self, name: str, component: BaseComponent[Any, Any], *,
+                      allow_overwrite: bool, allow_override: bool):
+        if not isinstance(component,
+                          (_Argument, _Commands, _Option)):  # type: ignore
+            raise InvalidComponentTypeError()
+        if not allow_override and name in self.inherited_components:
+            raise ComponentOverrideForbidenError(name)
+        if name in self.own_components:
+            if not allow_overwrite:
+                raise ComponentAlreayExistsError(name)
+        if not is_valid_component_name(name):
+            raise InvalidComponentNameError(name)
+        setattr(self.namespace_class, name, component)
         self.own_components[name] = component
 
     def create_values(self) -> VALUES:
@@ -109,10 +124,17 @@ def get_namespace(namespace: Type[Namespace],
     return result
 
 
-def register_component(namespace: Type[Namespace], name: str,
-                       component: BaseComponent[Any, Any]):
+def register_component(namespace: Type[Namespace],
+                       name: str,
+                       component: BaseComponent[Any, Any],
+                       *,
+                       allow_override: bool = True,
+                       allow_overwrite: bool = True):
     internals = get_namespace(namespace, create=True)
-    internals.add_component(name, component)
+    internals.add_component(name,
+                            component,
+                            allow_override=allow_override,
+                            allow_overwrite=allow_overwrite)
 
 
 def get_value(namespace: Namespace, component: COMPONENT) -> Any:
@@ -184,6 +206,10 @@ def _aggregate_components(
         all_names = result.setdefault(component, set())
         all_names.add(name)
     return result
+
+
+def is_valid_component_name(name: str) -> bool:
+    return name.isidentifier() and not iskeyword(name)
 
 
 class _CommandsKey:
