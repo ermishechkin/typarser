@@ -1,16 +1,18 @@
 from ._version import __version__
 from .argument import Argument
 from .command import Commands
-from .errors import (ComponentAlreayExistsError,
-                     ComponentOverrideForbiddenError,
+from .errors import (CommandAlreayExistsError, CommandNotExistError,
+                     ComponentAlreayExistsError,
+                     ComponentOverrideForbiddenError, InvalidCommandNameError,
                      InvalidComponentNameError, InvalidComponentTypeError,
                      NamespaceNotRegisteredError, ParserError)
 from .namespace import Namespace, ns_add, ns_remove
 from .option import Option
 from .parser import Parser
 
-__all__ = ('Argument', 'Commands', 'ComponentAlreayExistsError',
-           'ComponentOverrideForbiddenError', 'InvalidComponentNameError',
-           'InvalidComponentTypeError', 'Namespace',
-           'NamespaceNotRegisteredError', 'Option', 'Parser', 'ParserError',
-           'ns_add', 'ns_remove')
+__all__ = ('Argument', 'CommandAlreayExistsError', 'CommandNotExistError',
+           'Commands', 'ComponentAlreayExistsError',
+           'ComponentOverrideForbiddenError', 'InvalidCommandNameError',
+           'InvalidComponentNameError', 'InvalidComponentTypeError',
+           'Namespace', 'NamespaceNotRegisteredError', 'Option', 'Parser',
+           'ParserError', 'ns_add', 'ns_remove')

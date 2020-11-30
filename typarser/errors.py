@@ -37,3 +37,18 @@ class ComponentAlreayExistsError(ParserError):
 class ComponentNotExistError(ParserError):
     def __init__(self, name: str) -> None:
         super().__init__(f'Component "{name}" does not exist in namespace')
+
+
+class InvalidCommandNameError(ParserError):
+    def __init__(self, name: str) -> None:
+        super().__init__(f'"{name}" is not a valid command name')
+
+
+class CommandAlreayExistsError(ParserError):
+    def __init__(self, name: str) -> None:
+        super().__init__(f'Command "{name}" already exists')
+
+
+class CommandNotExistError(ParserError):
+    def __init__(self, name: str) -> None:
+        super().__init__(f'Command "{name}" does not exist')
