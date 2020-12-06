@@ -62,15 +62,15 @@ def _fill_options(internals: NamespaceInternals, parser: ArgumentParser,
 
 def _fill_arguments(internals: NamespaceInternals, parser: ArgumentParser,
                     names_map: MAP, counter: Iterator[int]) -> None:
-    for argument, names in internals.arguments.items():
+    for argument, name in internals.arguments.items():
         key = f'opt_{next(counter)}'
+        calc_metavar = argument.metavar if argument.metavar else name
         parser.add_argument(
-            *names,
             type=argument.type,
             nargs=argument.nargs,  # type: ignore
             choices=argument.choices,  # type: ignore
             default=argument.default,
-            metavar=argument.metavar,
+            metavar=calc_metavar,
             help=argument.help,
             dest=key,
         )
