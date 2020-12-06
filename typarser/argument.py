@@ -22,7 +22,6 @@ class Argument(BaseOptArg[TYPE, RESULT]):
         type: Callable[[str], TYPE],
         nargs: Literal[None] = None,
         choices: Optional[Iterable[TYPE]] = None,
-        default: Optional[TYPE] = None,
         metavar: Optional[str] = None,
         help: Optional[str] = None,
     ):
@@ -46,9 +45,21 @@ class Argument(BaseOptArg[TYPE, RESULT]):
         self: Argument[TYPE, List[TYPE]],
         *,
         type: Callable[[str], TYPE],
-        nargs: Union[int, Literal['*'], Literal['+']],
+        nargs: Union[int, Literal['+']],
         choices: Optional[Iterable[TYPE]] = None,
-        default: Optional[TYPE] = None,
+        metavar: Optional[str] = None,  # https://bugs.python.org/issue14074
+        help: Optional[str] = None,
+    ):
+        ...
+
+    @overload
+    def __init__(
+        self: Argument[TYPE, List[TYPE]],
+        *,
+        type: Callable[[str], TYPE],
+        nargs: Literal['*'],
+        choices: Optional[Iterable[TYPE]] = None,
+        default: Optional[List[TYPE]] = None,
         metavar: Optional[str] = None,  # https://bugs.python.org/issue14074
         help: Optional[str] = None,
     ):
@@ -62,7 +73,7 @@ class Argument(BaseOptArg[TYPE, RESULT]):
             type: Callable[[str], TYPE],  # pylint: disable=redefined-builtin
             nargs: Optional[NARGS] = None,
             choices: Optional[Iterable[TYPE]] = None,
-            default: Optional[TYPE] = None,
+            default: Optional[Any] = None,
             metavar: Optional[str] = None,
             help: Optional[str] = None,  # pylint: disable=redefined-builtin
     ):
@@ -90,7 +101,6 @@ class Argument(BaseOptArg[TYPE, RESULT]):
         type: Callable[[str], TYPE],
         nargs: Literal[None] = None,
         choices: Optional[Iterable[TYPE]] = None,
-        default: Optional[TYPE] = None,
         metavar: Optional[str] = None,
         help: Optional[str] = None,
     ) -> Argument[TYPE, TYPE]:
@@ -114,9 +124,21 @@ class Argument(BaseOptArg[TYPE, RESULT]):
         cls,
         *,
         type: Callable[[str], TYPE],
+        nargs: Union[int, Literal['+']],
+        choices: Optional[Iterable[TYPE]] = None,
+        metavar: Optional[str] = None,
+        help: Optional[str] = None,
+    ) -> Argument[TYPE, List[TYPE]]:
+        ...
+
+    @overload
+    def __new__(
+        cls,
+        *,
+        type: Callable[[str], TYPE],
         nargs: Union[int, Literal['*'], Literal['+']],
         choices: Optional[Iterable[TYPE]] = None,
-        default: Optional[TYPE] = None,
+        default: Optional[List[TYPE]] = None,
         metavar: Optional[str] = None,
         help: Optional[str] = None,
     ) -> Argument[TYPE, List[TYPE]]:
