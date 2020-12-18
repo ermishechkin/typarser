@@ -1,15 +1,18 @@
 from __future__ import annotations
 
 import typing
-from typing import Generic, Literal, Optional, Type, TypeVar, Union, overload
+from typing import (Any, Generic, Literal, Optional, Type, TypeVar, Union,
+                    overload)
 
 from ._internal_namespace import get_value
+from .errors import NamespaceNotRegisteredError
 
 if typing.TYPE_CHECKING:
     # pylint: disable=cyclic-import
     from .namespace import Namespace
     NAMESPACE = TypeVar('NAMESPACE', bound=Namespace)
     SELF = TypeVar('SELF', bound='BaseComponent')
+    CLASS = TypeVar('CLASS')
     # pylint: enable=cyclic-import
 
 TYPE = TypeVar('TYPE')
@@ -30,19 +33,25 @@ class BaseComponent(Generic[TYPE, RESULT]):
 
     @overload
     def __get__(self: SELF, owner: Literal[None],
-                inst: Type[NAMESPACE]) -> SELF:
+                inst: Type[Namespace]) -> SELF:
         ...
 
     @overload
-    def __get__(self, owner: NAMESPACE, inst: Type[NAMESPACE]) -> RESULT:
+    def __get__(self, owner: Namespace, inst: Type[Namespace]) -> RESULT:
         ...
 
-    def __get__(
-            self, owner: Optional[NAMESPACE], inst: Type[NAMESPACE]
-    ) -> Union[BaseComponent[TYPE, RESULT], RESULT]:
+    @overload
+    def __get__(self: SELF, owner: Optional[CLASS], inst: Type[CLASS]) -> SELF:
+        ...
+
+    def __get__(self, owner: Optional[Any],
+                inst: Type[Any]) -> Union[BaseComponent[TYPE, RESULT], RESULT]:
         if owner is None:
             return self
-        return get_value(owner, self)
+        try:
+            return get_value(owner, self)
+        except NamespaceNotRegisteredError:
+            return self  # In case of usage outside namespace class
 
     def __set__(self, owner: NAMESPACE, value: TYPE) -> None:
         raise AttributeError
