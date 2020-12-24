@@ -8,6 +8,7 @@ from ._internal_namespace import set_value
 
 if typing.TYPE_CHECKING:
     from ._base import NAMESPACE
+    from .action import Action
     NARGS = Union[int, Literal['*'], Literal['+'], Literal['?']]
 
 
@@ -20,6 +21,7 @@ class BaseOptArg(BaseComponent[TYPE, RESULT]):
             choices: Optional[Iterable[TYPE]],
             default: Optional[RESULT],
             metavar: Optional[Union[str, Tuple[str, ...]]],
+            action: Optional[Action] = None,
             help: Optional[str],  # pylint: disable=redefined-builtin
     ) -> None:
         super().__init__(help=help)
@@ -28,6 +30,7 @@ class BaseOptArg(BaseComponent[TYPE, RESULT]):
         self._choices = tuple(choices) if choices else None
         self._default = default
         self._metavar = metavar
+        self._action = action
 
     @property
     def type(self) -> Callable[[str], TYPE]:
@@ -48,6 +51,10 @@ class BaseOptArg(BaseComponent[TYPE, RESULT]):
     @property
     def metavar(self) -> Optional[Union[str, Tuple[str, ...]]]:
         return self._metavar
+
+    @property
+    def action(self) -> Optional[Action]:
+        return self._action
 
     def __set__(self, owner: NAMESPACE, value: TYPE):
         set_value(owner, self, value)

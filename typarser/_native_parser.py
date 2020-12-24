@@ -14,6 +14,7 @@ from ._internal_namespace import get_namespace, get_value, set_value
 if typing.TYPE_CHECKING:
     # pylint: disable=cyclic-import
     from ._internal_namespace import COMPONENT, NamespaceInternals
+    from .action import Action
     from .command import Commands
     from .namespace import Namespace
     from .parser import Parser
@@ -69,7 +70,9 @@ def _fill_options(internals: NamespaceInternals, parser: ArgumentParser,
             choices=option.choices,  # type: ignore
             default=option.default,
             metavar=option.metavar,
-            action=(create_store_action(state, option) if not option.multiple
+            action=(create_action_proxy(option.action, option, state)
+                    if option.action is not None else
+                    create_store_action(state, option) if not option.multiple
                     else create_append_action(state, option)),
             help=option.help,
             dest=key,
@@ -89,7 +92,9 @@ def _fill_arguments(internals: NamespaceInternals, parser: ArgumentParser,
             choices=argument.choices,  # type: ignore
             default=argument.default,
             metavar=calc_metavar,
-            action=create_store_action(state, argument),
+            action=(create_action_proxy(argument.action, argument, state)
+                    if argument.action is not None else create_store_action(
+                        state, argument)),
             help=argument.help,
             dest=key,
         )
@@ -154,6 +159,27 @@ class State:
     current_map: MAP
     native_namespace: ArgparseNamespace
     subcommands_dict: Dict[str, str]
+
+
+def create_action_proxy(action: Action, component: COMPONENT, state: State):
+    class ProxyAction(ArgparseAction):
+        def __init__(self, option_strings: List[str], *args: Any,
+                     **kwargs: Any) -> None:
+            super().__init__(option_strings, *args, **kwargs)
+            action.bind(option_strings, component)
+
+        def __call__(
+            self,
+            native_parser: ArgumentParser,
+            native_namespace: ArgparseNamespace,
+            values: Union[str, Sequence[Any], None],
+            option_string: Optional[str] = None,
+        ) -> None:
+            assert state.parser is not None
+            action(state.parser, state.current_namespace, values,
+                   option_string)
+
+    return ProxyAction
 
 
 def create_store_action(state: State, component: COMPONENT):

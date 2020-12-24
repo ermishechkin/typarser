@@ -10,6 +10,7 @@ from .namespace import Namespace
 
 if typing.TYPE_CHECKING:
     from ._base_optarg import NARGS
+    from .action import Action
 
 
 class Option(BaseOptArg[TYPE, RESULT]):
@@ -26,6 +27,7 @@ class Option(BaseOptArg[TYPE, RESULT]):
         choices: Optional[Iterable[TYPE]] = None,
         default: Optional[TYPE] = None,
         metavar: Optional[str] = None,
+        action: Optional[Action] = None,
         help: Optional[str] = None,
     ):
         ...
@@ -40,6 +42,7 @@ class Option(BaseOptArg[TYPE, RESULT]):
         multiple: Literal[False] = False,
         choices: Optional[Iterable[TYPE]] = None,
         metavar: Optional[str] = None,
+        action: Optional[Action] = None,
         help: Optional[str] = None,
     ):
         ...
@@ -55,6 +58,7 @@ class Option(BaseOptArg[TYPE, RESULT]):
         choices: Optional[Iterable[TYPE]] = None,
         default: Optional[TYPE] = None,
         metavar: Optional[str] = None,
+        action: Optional[Action] = None,
         help: Optional[str] = None,
     ):
         ...
@@ -128,6 +132,7 @@ class Option(BaseOptArg[TYPE, RESULT]):
         choices: Optional[Iterable[TYPE]] = None,
         default: Optional[List[TYPE]] = None,
         metavar: Optional[str] = None,
+        action: Optional[Action] = None,
         help: Optional[str] = None,
     ):
         ...
@@ -143,6 +148,7 @@ class Option(BaseOptArg[TYPE, RESULT]):
         choices: Optional[Iterable[TYPE]] = None,
         default: Optional[List[Optional[TYPE]]] = None,
         metavar: Optional[str] = None,
+        action: Optional[Action] = None,
         help: Optional[str] = None,
     ):
         ...
@@ -189,6 +195,7 @@ class Option(BaseOptArg[TYPE, RESULT]):
             choices: Optional[Iterable[TYPE]] = None,
             default: Optional[Any] = None,
             metavar: Optional[Union[str, Tuple[str, ...]]] = None,
+            action: Optional[Action] = None,
             help: Optional[str] = None,  # pylint: disable=redefined-builtin
     ):
         super().__init__(
@@ -197,6 +204,7 @@ class Option(BaseOptArg[TYPE, RESULT]):
             choices=choices,
             default=default,
             metavar=metavar,
+            action=action,
             help=help,
         )
         self._required = required
@@ -229,6 +237,7 @@ class Option(BaseOptArg[TYPE, RESULT]):
         choices: Optional[Iterable[TYPE]] = None,
         default: Optional[TYPE] = None,
         metavar: Optional[str] = None,
+        action: Optional[Action] = None,
         help: Optional[str] = None,
     ) -> Option[TYPE, Optional[TYPE]]:
         ...
@@ -243,6 +252,7 @@ class Option(BaseOptArg[TYPE, RESULT]):
         multiple: Literal[False] = False,
         choices: Optional[Iterable[TYPE]] = None,
         metavar: Optional[str] = None,
+        action: Optional[Action] = None,
         help: Optional[str] = None,
     ) -> Option[TYPE, TYPE]:
         ...
@@ -258,6 +268,7 @@ class Option(BaseOptArg[TYPE, RESULT]):
         choices: Optional[Iterable[TYPE]] = None,
         default: Optional[TYPE] = None,
         metavar: Optional[str] = None,
+        action: Optional[Action] = None,
         help: Optional[str] = None,
     ) -> Option[TYPE, Optional[TYPE]]:
         ...
@@ -331,6 +342,7 @@ class Option(BaseOptArg[TYPE, RESULT]):
         choices: Optional[Iterable[TYPE]] = None,
         default: Optional[List[TYPE]] = None,
         metavar: Optional[str] = None,
+        action: Optional[Action] = None,
         help: Optional[str] = None,
     ) -> Option[TYPE, List[TYPE]]:
         ...
@@ -346,6 +358,7 @@ class Option(BaseOptArg[TYPE, RESULT]):
         choices: Optional[Iterable[TYPE]] = None,
         default: Optional[List[Optional[TYPE]]] = None,
         metavar: Optional[str] = None,
+        action: Optional[Action] = None,
         help: Optional[str] = None,
     ) -> Option[TYPE, List[Optional[TYPE]]]:
         ...
