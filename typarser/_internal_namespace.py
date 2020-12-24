@@ -108,8 +108,15 @@ class NamespaceInternals:
 
     def create_values(self) -> VALUES:
         result: VALUES = {}
-        result.update({option: None for option in self.options})
-        result.update({argument: None for argument in self.arguments})
+        result.update({
+            option: (option.default if option.default is not None else
+                     [] if option.multiple else None)
+            for option in self.options
+        })
+        result.update({
+            argument: None if argument.default is None else argument.default
+            for argument in self.arguments
+        })
         if self.command_containers:
             result[_CommandsKey] = None
         return result
