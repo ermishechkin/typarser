@@ -11,7 +11,7 @@ if typing.TYPE_CHECKING:
     # pylint: disable=cyclic-import
     from .namespace import Namespace
     NAMESPACE = TypeVar('NAMESPACE', bound=Namespace)
-    SELF = TypeVar('SELF', bound='BaseComponent')
+    SELF = TypeVar('SELF', bound='BaseComponent[Any, Any]')
     CLASS = TypeVar('CLASS')
     # pylint: enable=cyclic-import
 

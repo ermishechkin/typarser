@@ -22,7 +22,7 @@ if typing.TYPE_CHECKING:
     from .option import Option
     COMPONENT = BaseComponent[Any, Any]
     VALUES = Dict[Union[COMPONENT, Type['_CommandsKey']], Any]
-    TYPE = TypeVar('TYPE', bound=BaseComponent)
+    TYPE = TypeVar('TYPE', bound=BaseComponent[Any, Any])
     # pylint: enable=cyclic-import
 
 
