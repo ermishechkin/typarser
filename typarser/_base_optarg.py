@@ -7,7 +7,7 @@ from ._base import RESULT, TYPE, BaseComponent
 from ._internal_namespace import set_value
 
 if typing.TYPE_CHECKING:
-    from ._base import NAMESPACE
+    from ._base import Namespace
     from .action import Action
     NARGS = Union[int, Literal['*'], Literal['+'], Literal['?']]
 
@@ -56,5 +56,5 @@ class BaseOptArg(BaseComponent[TYPE, RESULT]):
     def action(self) -> Optional[Action]:
         return self._action
 
-    def __set__(self, owner: NAMESPACE, value: TYPE):
+    def __set__(self, owner: Namespace, value: TYPE):
         set_value(owner, self, value)

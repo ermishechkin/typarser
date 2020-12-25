@@ -10,7 +10,6 @@ from .errors import NamespaceNotRegisteredError
 if typing.TYPE_CHECKING:
     # pylint: disable=cyclic-import
     from .namespace import Namespace
-    NAMESPACE = TypeVar('NAMESPACE', bound=Namespace)
     SELF = TypeVar('SELF', bound='BaseComponent[Any, Any]')
     CLASS = TypeVar('CLASS')
     # pylint: enable=cyclic-import
@@ -53,5 +52,5 @@ class BaseComponent(Generic[TYPE, RESULT]):
         except NamespaceNotRegisteredError:
             return self  # In case of usage outside namespace class
 
-    def __set__(self, owner: NAMESPACE, value: TYPE) -> None:
+    def __set__(self, owner: Namespace, value: TYPE) -> None:
         raise AttributeError

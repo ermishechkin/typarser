@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import typing
-from typing import Optional, Type
+from typing import Any, Optional, Type
 
 from ._internal_namespace import (init_namespace, register_component,
                                   unregister_component)
 
 if typing.TYPE_CHECKING:
-    from ._base import RESULT, TYPE, BaseComponent
+    from ._base import BaseComponent
 
 
 class Namespace:
@@ -17,7 +17,7 @@ class Namespace:
 
 def ns_add(namespace: Type[Namespace],
            name: str,
-           component: BaseComponent[TYPE, RESULT],
+           component: BaseComponent[Any, Any],
            override: bool = False,
            overwrite: bool = False) -> None:
     register_component(namespace,
