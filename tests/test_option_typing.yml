@@ -1,0 +1,48 @@
+- case: test_class_member_access
+  main: |
+    from typarser import Namespace, Option
+
+    class Args(Namespace):
+      s = Option(type=str, help='help string')
+      i = Option(type=int, required=True)
+      b = Option(type=bool, nargs='?')
+      f = Option(type=float, nargs='+')
+      c = Option(type=complex, nargs='+', required=True)
+      f2 = Option(type=float, required=True, multiple=True)
+      i2 = Option(type=int, nargs='?', multiple=True)
+      s2 = Option(type=str, nargs='+', multiple=True)
+
+    reveal_type(Args.s)   # N: Revealed type is 'typarser.option.Option[builtins.str, Union[builtins.str, None]]'
+    reveal_type(Args.i)   # N: Revealed type is 'typarser.option.Option[builtins.int, builtins.int]'
+    reveal_type(Args.b)   # N: Revealed type is 'typarser.option.Option[builtins.bool, Union[builtins.bool, None]]'
+    reveal_type(Args.f)   # N: Revealed type is 'typarser.option.Option[builtins.float, Union[builtins.list[builtins.float], None]]'
+    reveal_type(Args.c)   # N: Revealed type is 'typarser.option.Option[builtins.complex, builtins.list[builtins.complex]]'
+    reveal_type(Args.f2)  # N: Revealed type is 'typarser.option.Option[builtins.float, builtins.list[builtins.float]]'
+    reveal_type(Args.i2)  # N: Revealed type is 'typarser.option.Option[builtins.int, builtins.list[Union[builtins.int, None]]]'
+    reveal_type(Args.s2)  # N: Revealed type is 'typarser.option.Option[builtins.str, builtins.list[builtins.list[builtins.str]]]'
+
+- case: test_value_access
+  main: |
+    from typarser import Namespace, Option, Parser
+
+    class Args(Namespace):
+      s = Option(type=str, help='help string')
+      i = Option(type=int, required=True)
+      b = Option(type=bool, nargs='?')
+      f = Option(type=float, nargs='+')
+      c = Option(type=complex, nargs='+', required=True)
+      f2 = Option(type=float, required=True, multiple=True)
+      i2 = Option(type=int, nargs='?', multiple=True)
+      s2 = Option(type=str, nargs='+', multiple=True)
+
+    parser = Parser(Args)
+    args = parser.parse([])
+
+    reveal_type(args.s)   # N: Revealed type is 'Union[builtins.str*, None]'
+    reveal_type(args.i)   # N: Revealed type is 'builtins.int*'
+    reveal_type(args.b)   # N: Revealed type is 'Union[builtins.bool*, None]'
+    reveal_type(args.f)   # N: Revealed type is 'Union[builtins.list[builtins.float*], None]'
+    reveal_type(args.c)   # N: Revealed type is 'builtins.list*[builtins.complex*]'
+    reveal_type(args.f2)  # N: Revealed type is 'builtins.list*[builtins.float*]'
+    reveal_type(args.i2)  # N: Revealed type is 'builtins.list*[Union[builtins.int*, None]]'
+    reveal_type(args.s2)  # N: Revealed type is 'builtins.list*[builtins.list[builtins.str*]]'
