@@ -65,6 +65,7 @@ def _fill_options(internals: NamespaceInternals, parser: ArgumentParser,
             f'-{name}' if len(name) == 1 else f'--{name}' for name in names
         ]
         key = f'opt_{next(counter)}'
+        calc_metavar = option.metavar if option.metavar else names[0].upper()
         parser.add_argument(
             *names_prefixed,
             type=option.type,
@@ -72,7 +73,7 @@ def _fill_options(internals: NamespaceInternals, parser: ArgumentParser,
             nargs=option.nargs,  # type: ignore
             choices=option.choices,  # type: ignore
             default=option.default,
-            metavar=option.metavar,
+            metavar=calc_metavar,
             action=(create_action_proxy(option.action, option, state)
                     if option.action is not None else
                     create_store_action(state, option) if not option.multiple
