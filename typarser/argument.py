@@ -36,7 +36,20 @@ class Argument(BaseOptArg[TYPE, RESULT]):
         type: Callable[[str], TYPE],
         nargs: Literal['?'],
         choices: Optional[Iterable[TYPE]] = None,
-        default: Optional[TYPE] = None,
+        metavar: Optional[str] = None,
+        action: Optional[Action] = None,
+        help: Optional[str] = None,
+    ):
+        ...
+
+    @overload
+    def __init__(
+        self: Argument[TYPE, TYPE],
+        *,
+        type: Callable[[str], TYPE],
+        nargs: Literal['?'],
+        choices: Optional[Iterable[TYPE]] = None,
+        default: TYPE,
         metavar: Optional[str] = None,
         action: Optional[Action] = None,
         help: Optional[str] = None,
@@ -121,11 +134,24 @@ class Argument(BaseOptArg[TYPE, RESULT]):
         type: Callable[[str], TYPE],
         nargs: Literal['?'],
         choices: Optional[Iterable[TYPE]] = None,
-        default: Optional[TYPE] = None,
         metavar: Optional[str] = None,
         action: Optional[Action] = None,
         help: Optional[str] = None,
     ) -> Argument[TYPE, Optional[TYPE]]:
+        ...
+
+    @overload
+    def __new__(
+        cls,
+        *,
+        type: Callable[[str], TYPE],
+        nargs: Literal['?'],
+        choices: Optional[Iterable[TYPE]] = None,
+        default: TYPE,
+        metavar: Optional[str] = None,
+        action: Optional[Action] = None,
+        help: Optional[str] = None,
+    ) -> Argument[TYPE, TYPE]:
         ...
 
     @overload
