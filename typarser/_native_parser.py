@@ -31,7 +31,8 @@ def create_native_parser(
     class CustomNamespace(ArgparseNamespace):
         pass
 
-    native_parser = ArgumentParser()
+    internals = get_namespace(namespace_class)
+    native_parser = ArgumentParser(**_format_parser_options(internals))
     state = State(
         parser=parser,
         current_namespace=None,
@@ -132,10 +133,21 @@ def _fill_commands(internals: NamespaceInternals, parser: ArgumentParser,
         names_map[key] = _Subcommands(next(iter(internals.command_containers)),
                                       names_submap)
         for name, subnamespace in internals.commands.items():
-            subparser = subparsers.add_parser(name)
+            subnamespace_internals = get_namespace(subnamespace)
+            subparser = subparsers.add_parser(
+                name, **_format_parser_options(subnamespace_internals))
             names_submap[name] = _Subcommand(
                 _fill_parser(subnamespace, subparser, counter, state),
                 subnamespace)
+
+
+def _format_parser_options(internals: NamespaceInternals) -> Dict[str, Any]:
+    return {
+        'prog': internals.prog,
+        'usage': internals.usage,
+        'description': internals.description,
+        'epilog': internals.epilog,
+    }
 
 
 def parse_args(native_parser: ArgumentParser, state: State[ARGS],

@@ -11,8 +11,21 @@ if typing.TYPE_CHECKING:
 
 
 class Namespace:
-    def __init_subclass__(cls, usage: Optional[str] = None) -> None:
-        init_namespace(cls, usage=usage)
+    def __init_subclass__(
+        cls,
+        *,
+        prog: Optional[str] = None,
+        usage: Optional[str] = None,
+        description: Optional[str] = None,
+        epilog: Optional[str] = None,
+    ) -> None:
+        init_namespace(
+            cls,
+            prog=prog,
+            usage=usage,
+            description=description,
+            epilog=epilog,
+        )
 
 
 def ns_add(namespace: Type[Namespace],

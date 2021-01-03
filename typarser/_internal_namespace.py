@@ -27,11 +27,14 @@ if typing.TYPE_CHECKING:
 
 
 @dataclass
-class NamespaceInternals:
+class NamespaceInternals:  # pylint: disable=too-many-instance-attributes
     namespace_class: Type[Namespace]
     own_components: Dict[str, COMPONENT] = field(default_factory=lambda: {})
     removed_names: Set[str] = field(default_factory=set)
+    prog: Optional[str] = None
     usage: Optional[str] = None
+    description: Optional[str] = None
+    epilog: Optional[str] = None
     registered: bool = False
 
     @property
@@ -130,9 +133,14 @@ class NamespaceInternals:
         return result
 
 
-def init_namespace(namespace: Type[Namespace], *, usage: Optional[str]):
+def init_namespace(namespace: Type[Namespace], *, prog: Optional[str],
+                   usage: Optional[str], description: Optional[str],
+                   epilog: Optional[str]):
     internals = get_namespace(namespace, create=True)
+    internals.prog = prog
     internals.usage = usage
+    internals.description = description
+    internals.epilog = epilog
     internals.registered = True
 
 
