@@ -19,7 +19,7 @@ class BaseOptArg(BaseComponent[TYPE, RESULT]):
             type: Callable[[str], TYPE],  # pylint: disable=redefined-builtin
             nargs: Optional[NARGS],
             choices: Optional[Iterable[TYPE]],
-            default: Optional[RESULT],
+            default: Optional[Union[RESULT, str]],
             metavar: Optional[Union[str, Tuple[str, ...]]],
             action: Optional[Action] = None,
             help: Optional[str],  # pylint: disable=redefined-builtin
@@ -45,7 +45,7 @@ class BaseOptArg(BaseComponent[TYPE, RESULT]):
         return self._choices
 
     @property
-    def default(self) -> Optional[RESULT]:
+    def default(self) -> Optional[Union[RESULT, str]]:
         return self._default
 
     @property
