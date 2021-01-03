@@ -3,8 +3,8 @@ from __future__ import annotations
 import typing
 from dataclasses import dataclass, field
 from keyword import iskeyword
-from typing import (Any, Dict, Literal, MutableMapping, Optional, Set, Tuple,
-                    Type, TypeVar, Union, cast, overload)
+from typing import (Any, Dict, List, Literal, MutableMapping, Optional, Set,
+                    Tuple, Type, TypeVar, Union, cast, overload)
 from weakref import WeakKeyDictionary
 
 from ._removed_component import RemovedComponent
@@ -63,7 +63,7 @@ class NamespaceInternals:  # pylint: disable=too-many-instance-attributes
         return result
 
     @property
-    def options(self) -> Dict[Option[Any, Any], Set[str]]:
+    def options(self) -> Dict[Option[Any, Any], List[str]]:
         return self._filter_components(_Option)
 
     @property
@@ -74,7 +74,7 @@ class NamespaceInternals:  # pylint: disable=too-many-instance-attributes
         }
 
     @property
-    def command_containers(self) -> Dict[Commands[Any, Any], Set[str]]:
+    def command_containers(self) -> Dict[Commands[Any, Any], List[str]]:
         return self._filter_components(_Commands)
 
     @property
@@ -124,7 +124,7 @@ class NamespaceInternals:  # pylint: disable=too-many-instance-attributes
             result[_CommandsKey] = None
         return result
 
-    def _filter_components(self, base: Type[TYPE]) -> Dict[TYPE, Set[str]]:
+    def _filter_components(self, base: Type[TYPE]) -> Dict[TYPE, List[str]]:
         result = {
             cast('TYPE', comp): names
             for comp, names in _aggregate_components(self.components).items()
@@ -236,11 +236,12 @@ def _list_parents(
 
 
 def _aggregate_components(
-        components: Dict[str, COMPONENT]) -> Dict[COMPONENT, Set[str]]:
-    result: Dict[COMPONENT, Set[str]] = {}
+        components: Dict[str, COMPONENT]) -> Dict[COMPONENT, List[str]]:
+    result: Dict[COMPONENT, List[str]] = {}
     for name, component in components.items():
-        all_names = result.setdefault(component, set())
-        all_names.add(name)
+        all_names = result.setdefault(component, [])
+        if name not in all_names:
+            all_names.append(name)
     return result
 
 
