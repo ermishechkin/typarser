@@ -52,3 +52,12 @@ class ActionStoreConst(Action):
                  values: Union[None, TYPE, List[TYPE]],
                  option_string: Optional[str] = None) -> None:
         self.set_value(namespace, self.component, self.const)
+
+
+class ActionHelp(Action):
+    def __call__(self,
+                 parser: Parser[ARGS],
+                 namespace: ARGS,
+                 values: Union[None, TYPE, List[TYPE]],
+                 option_string: Optional[str] = None) -> None:
+        parser.print_help()

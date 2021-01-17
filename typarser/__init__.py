@@ -11,10 +11,11 @@ from .flag import Flag
 from .namespace import Namespace, ns_add, ns_remove
 from .option import Option
 from .parser import Parser
+from .shortcuts import Help
 
 __all__ = ('Action', 'Argument', 'CommandAlreayExistsError',
            'CommandNotExistError', 'Commands', 'ComponentAlreayExistsError',
-           'ComponentOverrideForbiddenError', 'Flag',
+           'ComponentOverrideForbiddenError', 'Flag', 'Help',
            'InvalidCommandNameError', 'InvalidComponentNameError',
            'InvalidComponentTypeError', 'Namespace',
            'NamespaceNotRegisteredError', 'Option', 'Parser', 'ParserError',
