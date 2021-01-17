@@ -18,6 +18,7 @@ class Namespace:
         usage: Optional[str] = None,
         description: Optional[str] = None,
         epilog: Optional[str] = None,
+        allow_abbrev: bool = False,
     ) -> None:
         init_namespace(
             cls,
@@ -25,6 +26,7 @@ class Namespace:
             usage=usage,
             description=description,
             epilog=epilog,
+            allow_abbrev=allow_abbrev,
         )
 
 

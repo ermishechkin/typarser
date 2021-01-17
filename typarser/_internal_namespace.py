@@ -35,6 +35,7 @@ class NamespaceInternals:  # pylint: disable=too-many-instance-attributes
     usage: Optional[str] = None
     description: Optional[str] = None
     epilog: Optional[str] = None
+    allow_abbrev: bool = False
     registered: bool = False
 
     @property
@@ -135,12 +136,13 @@ class NamespaceInternals:  # pylint: disable=too-many-instance-attributes
 
 def init_namespace(namespace: Type[Namespace], *, prog: Optional[str],
                    usage: Optional[str], description: Optional[str],
-                   epilog: Optional[str]):
+                   epilog: Optional[str], allow_abbrev: bool):
     internals = get_namespace(namespace, create=True)
     internals.prog = prog
     internals.usage = usage
     internals.description = description
     internals.epilog = epilog
+    internals.allow_abbrev = allow_abbrev
     internals.registered = True
 
 

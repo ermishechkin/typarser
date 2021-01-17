@@ -148,6 +148,7 @@ def _format_parser_options(internals: NamespaceInternals) -> Dict[str, Any]:
         'description': internals.description,
         'epilog': internals.epilog,
         'add_help': False,
+        'allow_abbrev': internals.allow_abbrev,
     }
 
 
