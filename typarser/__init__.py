@@ -7,13 +7,15 @@ from .errors import (CommandAlreayExistsError, CommandNotExistError,
                      ComponentOverrideForbiddenError, InvalidCommandNameError,
                      InvalidComponentNameError, InvalidComponentTypeError,
                      NamespaceNotRegisteredError, ParserError)
+from .flag import Flag
 from .namespace import Namespace, ns_add, ns_remove
 from .option import Option
 from .parser import Parser
 
 __all__ = ('Action', 'Argument', 'CommandAlreayExistsError',
            'CommandNotExistError', 'Commands', 'ComponentAlreayExistsError',
-           'ComponentOverrideForbiddenError', 'InvalidCommandNameError',
-           'InvalidComponentNameError', 'InvalidComponentTypeError',
-           'Namespace', 'NamespaceNotRegisteredError', 'Option', 'Parser',
-           'ParserError', 'ns_add', 'ns_remove')
+           'ComponentOverrideForbiddenError', 'Flag',
+           'InvalidCommandNameError', 'InvalidComponentNameError',
+           'InvalidComponentTypeError', 'Namespace',
+           'NamespaceNotRegisteredError', 'Option', 'Parser', 'ParserError',
+           'ns_add', 'ns_remove')
