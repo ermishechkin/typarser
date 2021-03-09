@@ -7,9 +7,10 @@ from argparse import Namespace as ArgparseNamespace
 from dataclasses import dataclass
 from itertools import count
 from typing import (Any, Dict, Generic, Iterator, List, NamedTuple, Optional,
-                    Sequence, Tuple, Type, TypeVar, Union)
+                    Sequence, Text, Tuple, Type, TypeVar, Union)
 
 from ._internal_namespace import get_namespace, get_value, set_value
+from .errors import ParseError
 from .namespace import Namespace
 
 if typing.TYPE_CHECKING:
@@ -32,7 +33,7 @@ def create_native_parser(
         pass
 
     internals = get_namespace(namespace_class)
-    native_parser = ArgumentParser(**_format_parser_options(internals))
+    native_parser = ArgumentParserEx(**_format_parser_options(internals))
     state = State(
         parser=parser,
         current_namespace=None,
@@ -263,3 +264,8 @@ class ProxyMember:
         self.state.current_namespace = new_namespace
         self.state.current_map = cmd.submap
         self.state.subcommands_dict[self.key] = cmd_name
+
+
+class ArgumentParserEx(ArgumentParser):
+    def error(self, message: Text):
+        raise ParseError(message)

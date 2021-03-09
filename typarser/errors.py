@@ -52,3 +52,7 @@ class CommandAlreayExistsError(ParserError):
 class CommandNotExistError(ParserError):
     def __init__(self, name: str) -> None:
         super().__init__(f'Command "{name}" does not exist')
+
+
+class ParseError(ParserError):
+    pass

@@ -6,7 +6,7 @@ from .errors import (CommandAlreayExistsError, CommandNotExistError,
                      ComponentAlreayExistsError,
                      ComponentOverrideForbiddenError, InvalidCommandNameError,
                      InvalidComponentNameError, InvalidComponentTypeError,
-                     NamespaceNotRegisteredError, ParserError)
+                     NamespaceNotRegisteredError, ParseError, ParserError)
 from .flag import Flag
 from .namespace import Namespace, ns_add, ns_remove
 from .option import Option
@@ -18,5 +18,5 @@ __all__ = ('Action', 'Argument', 'CommandAlreayExistsError',
            'ComponentOverrideForbiddenError', 'Flag', 'Help',
            'InvalidCommandNameError', 'InvalidComponentNameError',
            'InvalidComponentTypeError', 'Namespace',
-           'NamespaceNotRegisteredError', 'Option', 'Parser', 'ParserError',
-           'ns_add', 'ns_remove')
+           'NamespaceNotRegisteredError', 'Option', 'Parser', 'ParseError',
+           'ParserError', 'ns_add', 'ns_remove')
