@@ -6,8 +6,8 @@ from argparse import ArgumentParser
 from argparse import Namespace as ArgparseNamespace
 from dataclasses import dataclass
 from itertools import count
-from typing import (Any, Dict, Generic, Iterator, List, NamedTuple, Optional,
-                    Sequence, Text, Tuple, Type, TypeVar, Union)
+from typing import (Any, Dict, Generic, Iterator, List, Optional, Sequence,
+                    Text, Tuple, Type, TypeVar, Union)
 
 from ._internal_namespace import get_namespace, get_value, set_value
 from .errors import ParseError
@@ -19,48 +19,42 @@ if typing.TYPE_CHECKING:
     from .action import Action
     from .command import Commands
     from .parser import Parser
-    MAP = Dict[  # type: ignore  # mypy doesn't suport cyclic types
-        str, Union[COMPONENT, '_Subcommands']]  # type: ignore
+
     # pylint: enable=cyclic-import
 
-ARGS = TypeVar('ARGS', bound=Namespace)
+ARGS = TypeVar('ARGS', bound=Namespace, covariant=True)
 
 
 def create_native_parser(
         parser: Parser[ARGS],
         namespace_class: Type[ARGS]) -> Tuple[ArgumentParser, State[ARGS]]:
-    class CustomNamespace(ArgparseNamespace):
-        pass
 
     internals = get_namespace(namespace_class)
     native_parser = ArgumentParserEx(**_format_parser_options(internals))
+    root_namespace_info = ContainerInfo(None, namespace_class, None)
     state = State(
         parser=parser,
+        root_namespace_info=root_namespace_info,
+        parents_map={},
         current_namespace=None,
-        current_map=None,
-        native_namespace=CustomNamespace(),
-        subcommands_dict={},
-        root_namespace_class=namespace_class,
-        root_map={},
+        ns_seq=[],
     )
-    names_map = _fill_parser(namespace_class, native_parser, count(start=1),
-                             state)
-    state.root_map = names_map
+    _fill_parser(namespace_class, native_parser, root_namespace_info,
+                 count(start=1), state)
     return native_parser, state
 
 
 def _fill_parser(namespace: Type[Namespace], parser: ArgumentParser,
-                 counter: Iterator[int], state: State[Any]) -> MAP:
+                 container: ContainerInfo[Namespace], counter: Iterator[int],
+                 state: State[Any]):
     internals = get_namespace(namespace)
-    names_map: MAP = {}
-    _fill_options(internals, parser, names_map, counter, state)
-    _fill_arguments(internals, parser, names_map, counter, state)
-    _fill_commands(internals, parser, names_map, counter, state)
-    return names_map
+    _fill_options(internals, parser, container, counter, state)
+    _fill_arguments(internals, parser, container, counter, state)
+    _fill_commands(internals, parser, container, counter, state)
 
 
 def _fill_options(internals: NamespaceInternals, parser: ArgumentParser,
-                  names_map: MAP, counter: Iterator[int],
+                  container: ContainerInfo[Namespace], counter: Iterator[int],
                   state: State[Any]) -> None:
     for option, names in internals.options.items():
         names_prefixed = [
@@ -76,19 +70,19 @@ def _fill_options(internals: NamespaceInternals, parser: ArgumentParser,
             choices=option.choices,  # type: ignore
             default=option.default,
             metavar=calc_metavar,
-            action=(create_action_proxy(option.action, option, state)
-                    if option.action is not None else
-                    create_store_action(state, option) if not option.multiple
-                    else create_append_action(state, option)),
+            action=(create_action_proxy(option.action, option, key, state)
+                    if option.action is not None else create_store_action(
+                        state, option, key) if not option.multiple else
+                    create_append_action(state, option, key)),
             help=option.help,
             dest=key,
         )
-        names_map[key] = option
+        state.parents_map[key] = container
 
 
 def _fill_arguments(internals: NamespaceInternals, parser: ArgumentParser,
-                    names_map: MAP, counter: Iterator[int],
-                    state: State[Any]) -> None:
+                    container: ContainerInfo[Namespace],
+                    counter: Iterator[int], state: State[Any]) -> None:
     for argument, name in internals.arguments.items():
         key = f'opt_{next(counter)}'
         calc_metavar = argument.metavar if argument.metavar else name
@@ -98,17 +92,17 @@ def _fill_arguments(internals: NamespaceInternals, parser: ArgumentParser,
             choices=argument.choices,  # type: ignore
             default=argument.default,
             metavar=calc_metavar,
-            action=(create_action_proxy(argument.action, argument, state)
+            action=(create_action_proxy(argument.action, argument, key, state)
                     if argument.action is not None else create_store_action(
-                        state, argument)),
+                        state, argument, key)),
             help=argument.help,
             dest=key,
         )
-        names_map[key] = argument
+        state.parents_map[key] = container
 
 
 def _fill_commands(internals: NamespaceInternals, parser: ArgumentParser,
-                   names_map: MAP, counter: Iterator[int],
+                   container: ContainerInfo[Namespace], counter: Iterator[int],
                    state: State[Any]) -> None:
     if internals.command_containers:
         for command_container in internals.command_containers:
@@ -129,17 +123,19 @@ def _fill_commands(internals: NamespaceInternals, parser: ArgumentParser,
             dest=key,
             metavar=metavar,
         )
-        setattr(type(state.native_namespace), key, ProxyMember(key, state))
-        names_submap: Dict[str, _Subcommand] = {}
-        names_map[key] = _Subcommands(next(iter(internals.command_containers)),
-                                      names_submap)
+
+        container.subcommands = SubcommandsInfo(
+            next(iter(internals.command_containers)), key, {})
+
+        state.parents_map[key] = container
         for name, subnamespace in internals.commands.items():
             subnamespace_internals = get_namespace(subnamespace)
             subparser = subparsers.add_parser(
                 name, **_format_parser_options(subnamespace_internals))
-            names_submap[name] = _Subcommand(
-                _fill_parser(subnamespace, subparser, counter, state),
-                subnamespace)
+            nested_container = ContainerInfo(container, subnamespace, None)
+            container.subcommands.commands_map[name] = nested_container
+            _fill_parser(subnamespace, subparser, nested_container, counter,
+                         state)
 
 
 def _format_parser_options(internals: NamespaceInternals) -> Dict[str, Any]:
@@ -156,40 +152,82 @@ def _format_parser_options(internals: NamespaceInternals) -> Dict[str, Any]:
 def parse_args(native_parser: ArgumentParser, state: State[ARGS],
                args: List[str]) -> ARGS:
     root_namespace = state.reset()
-    native_parser.parse_args(args, state.native_namespace)
+    native_namespace = native_parser.parse_args(args)
+    state.adjust_post_parse(native_namespace)
     return root_namespace
 
 
-class _Subcommand(NamedTuple):
-    submap: MAP
-    namespace: Type[Namespace]
+@dataclass
+class ContainerInfo(Generic[ARGS]):
+    parent: Optional[ContainerInfo[ARGS]]
+    namespace_class: Type[ARGS]
+    subcommands: Optional[SubcommandsInfo]
 
 
-class _Subcommands(NamedTuple):
-    component: Commands[Any, Any]
-    cmds: Dict[str, _Subcommand]
+@dataclass(frozen=False)
+class SubcommandsInfo:
+    commands_component: Commands[Any, Any]
+    native_key: str
+    commands_map: Dict[str, ContainerInfo[Namespace]]
 
 
 @dataclass
 class State(Generic[ARGS]):
     parser: Parser[ARGS]
+    root_namespace_info: ContainerInfo[ARGS]
+    parents_map: Dict[str, ContainerInfo[Namespace]]
     current_namespace: Optional[Namespace]
-    current_map: Optional[MAP]
-    native_namespace: ArgparseNamespace
-    subcommands_dict: Dict[str, str]
-    root_namespace_class: Type[ARGS]
-    root_map: MAP
+    ns_seq: List[Tuple[ContainerInfo[Namespace], Namespace]]
+
+    def adjust_namespace(self, comp_key: str):
+        parents: List[ContainerInfo[Namespace]] = []
+        parent_info: Optional[ContainerInfo[Namespace]]
+        parent_info = self.parents_map[comp_key]
+        while parent_info is not None:
+            parents.insert(0, parent_info)
+            parent_info = parent_info.parent
+
+        # sanity check
+        for (actual, _), expected in zip(self.ns_seq, parents):
+            assert actual is expected
+
+        prev_container, prev_namespace = self.ns_seq[-1]
+        for parent_info in parents[len(self.ns_seq):]:
+            created_namespace = parent_info.namespace_class()
+            self.ns_seq.append((parent_info, created_namespace))
+            assert prev_container.subcommands is not None
+            set_value(prev_namespace,
+                      prev_container.subcommands.commands_component,
+                      created_namespace)
+            prev_container, prev_namespace = parent_info, created_namespace
+
+        self.current_namespace = self.ns_seq[len(parents) - 1][1]
+
+    def adjust_post_parse(self, native_namespace: ArgparseNamespace):
+        container, namespace = self.ns_seq[-1]
+        while container.subcommands is not None:
+            subcommands: SubcommandsInfo = container.subcommands
+            cmd_name: Optional[str] = getattr(native_namespace,
+                                              subcommands.native_key)
+            if cmd_name is None:
+                break
+            next_container_info = subcommands.commands_map[cmd_name]
+            next_namespace = next_container_info.namespace_class()
+            set_value(namespace, subcommands.commands_component,
+                      next_namespace)
+            container = next_container_info
+            namespace = next_namespace
+
+        self.current_namespace = namespace
 
     def reset(self) -> ARGS:
-        root_namespace = self.root_namespace_class()
+        root_namespace = self.root_namespace_info.namespace_class()
         self.current_namespace = root_namespace
-        self.current_map = self.root_map
-        self.native_namespace.__dict__.clear()
-        self.subcommands_dict.clear()
+        self.ns_seq = [(self.root_namespace_info, root_namespace)]
         return root_namespace
 
 
-def create_action_proxy(action: Action, component: COMPONENT,
+def create_action_proxy(action: Action, component: COMPONENT, native_key: str,
                         state: State[Any]):
     class ProxyAction(ArgparseAction):
         def __init__(self, option_strings: List[str], *args: Any,
@@ -204,6 +242,7 @@ def create_action_proxy(action: Action, component: COMPONENT,
             values: Union[str, Sequence[Any], None],
             option_string: Optional[str] = None,
         ) -> None:
+            state.adjust_namespace(native_key)
             assert state.parser is not None
             action(state.parser, state.current_namespace, values,
                    option_string)
@@ -211,7 +250,8 @@ def create_action_proxy(action: Action, component: COMPONENT,
     return ProxyAction
 
 
-def create_store_action(state: State[Any], component: COMPONENT):
+def create_store_action(state: State[Any], component: COMPONENT,
+                        native_key: str):
     class StoreAction(ArgparseAction):
         def __call__(
             self,
@@ -220,13 +260,15 @@ def create_store_action(state: State[Any], component: COMPONENT):
             values: Union[str, Sequence[Any], None],
             option_string: Optional[str] = None,
         ) -> None:
+            state.adjust_namespace(native_key)
             assert state.current_namespace is not None
             set_value(state.current_namespace, component, values)
 
     return StoreAction
 
 
-def create_append_action(state: State[Any], component: COMPONENT):
+def create_append_action(state: State[Any], component: COMPONENT,
+                         native_key: str):
     class AppendAction(ArgparseAction):
         def __call__(
             self,
@@ -235,6 +277,7 @@ def create_append_action(state: State[Any], component: COMPONENT):
             values: Union[str, Sequence[Any], None],
             option_string: Optional[str] = None,
         ) -> None:
+            state.adjust_namespace(native_key)
             assert state.current_namespace is not None
             src_value = get_value(state.current_namespace, component)
             value: List[Any] = [] if src_value is None else src_value
@@ -242,28 +285,6 @@ def create_append_action(state: State[Any], component: COMPONENT):
             set_value(state.current_namespace, component, value)
 
     return AppendAction
-
-
-class ProxyMember:
-    def __init__(self, key: str, state: State[Any]):
-        self.key = key
-        self.state = state
-
-    def __get__(self, owner: Any, inst: Any):
-        return self.state.subcommands_dict.get(self.key)
-
-    def __set__(self, owner: Any, value: Any):
-        assert self.state.current_map is not None
-        assert self.state.current_namespace is not None
-        info = self.state.current_map[self.key]
-        assert isinstance(info, _Subcommands)
-        cmd_name: str = value
-        cmd = info.cmds[cmd_name]
-        new_namespace = cmd.namespace()
-        set_value(self.state.current_namespace, info.component, new_namespace)
-        self.state.current_namespace = new_namespace
-        self.state.current_map = cmd.submap
-        self.state.subcommands_dict[self.key] = cmd_name
 
 
 class ArgumentParserEx(ArgumentParser):

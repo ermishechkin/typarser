@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import typing
-from typing import Any, List, Optional, Union
+from typing import Any, List, Optional, TypeVar, Union
 
 from ._internal_namespace import set_value
 
@@ -10,7 +10,8 @@ if typing.TYPE_CHECKING:
     from ._base import TYPE, BaseComponent
     from ._internal_namespace import COMPONENT
     from .namespace import Namespace
-    from .parser import ARGS, Parser
+    from .parser import Parser
+    ARGS = TypeVar('ARGS', bound=Namespace)
 
     # pylint: enable=cyclic-import
 

@@ -40,3 +40,32 @@ def test_dynamic_addition():
     assert args.cmd.name == 'John'
     assert args.cmd.surname == 'Smith'
     assert args.cmd.age == 23
+
+
+def test_multilevel_commands():
+    class Cmd1_1(Namespace):
+        arg1 = Argument(type=str)
+
+    class Cmd2_1(Namespace):
+        pass
+
+    class Cmd2_2(Namespace):
+        arg1 = Argument(type=int)
+        arg2 = Argument(type=int)
+
+    class Cmd1(Namespace):
+        cmd = Commands({'sub': Cmd1_1})
+
+    class Cmd2(Namespace):
+        cmd = Commands({'sub1': Cmd2_1, 'sub2': Cmd2_2})
+
+    class Args(Namespace):
+        cmd = Commands({'cmd1': Cmd1, 'cmd2': Cmd2})
+
+    parser = Parser(Args)
+
+    args = parser.parse(['cmd2', 'sub2', '1', '2'])
+    assert type(args.cmd) is Cmd2
+    assert type(args.cmd.cmd) is Cmd2_2
+    assert args.cmd.cmd.arg1 == 1
+    assert args.cmd.cmd.arg2 == 2
