@@ -43,8 +43,8 @@ class BaseComponent(Generic[TYPE, RESULT]):
     def __get__(self: SELF, owner: Optional[CLASS], inst: Type[CLASS]) -> SELF:
         ...
 
-    def __get__(self, owner: Optional[Any],
-                inst: Type[Any]) -> Union[BaseComponent[TYPE, RESULT], RESULT]:
+    def __get__(self: SELF, owner: Optional[Any],
+                inst: Type[Any]) -> Union[SELF, RESULT]:
         if owner is None:
             return self
         try:

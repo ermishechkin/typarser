@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import typing
-from typing import Any, Literal, NoReturn, Optional, Type, overload
+from typing import Any, Literal, NoReturn, Optional, Type, Union, overload
 
 if typing.TYPE_CHECKING:
     # pylint: disable=cyclic-import
@@ -21,7 +21,7 @@ class RemovedComponent:
         ...
 
     def __get__(self, owner: Optional[Namespace],
-                inst: Type[Namespace]) -> RemovedComponent:
+                inst: Type[Namespace]) -> Union[NoReturn, RemovedComponent]:
         if owner is None:
             return self
         raise AttributeError
