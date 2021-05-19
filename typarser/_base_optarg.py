@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import typing
-from typing import Callable, Iterable, Literal, Optional, Tuple, Union
+from typing import Callable, Generic, Iterable, Literal, Optional, Tuple, Union
 
 from ._base import RESULT, TYPE, BaseComponent
 from ._internal_namespace import set_value
@@ -12,7 +12,7 @@ if typing.TYPE_CHECKING:
     NARGS = Union[int, Literal['*'], Literal['+'], Literal['?']]
 
 
-class BaseOptArg(BaseComponent[TYPE, RESULT]):
+class BaseOptArg(BaseComponent[TYPE, RESULT], Generic[TYPE, RESULT]):
     def __init__(
             self,
             *,
