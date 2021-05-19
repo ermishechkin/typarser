@@ -85,7 +85,7 @@ class Commands(BaseComponent[CMDS, RESULT]):
     # HACK: __init__ overloading doesn't work correctly for some linters.
     # Duplicate signatures for __new__ method.
 
-    # pylint: disable=redefined-builtin
+    # pylint: disable=redefined-builtin,arguments-differ
 
     @overload
     def __new__(
@@ -107,7 +107,7 @@ class Commands(BaseComponent[CMDS, RESULT]):
     ) -> Commands[CMDS, Optional[CMDS]]:
         ...
 
-    # pylint: enable=redefined-builtin
+    # pylint: enable=redefined-builtin,arguments-differ
 
     def __new__(cls, *args: Any, **kwargs: Any):
         # pylint: disable=unused-argument
